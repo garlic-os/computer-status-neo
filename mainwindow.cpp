@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
         // NB: The order of functions here and list items in the UI's dropdown
         //     MUST be the same. The app uses the INDEX of the selected action
         //     to decide which function to run.
-        // If you change/add any action, you must add all of these things:
+        // Also if you change/add any action, you must add all of these things:
         // 1. A pointer to its function here in the actions array
         // 1. Its function signature in mainwindow.h
         // 2. Its function implementation here in mainwindow.cpp
@@ -174,9 +174,11 @@ void MainWindow::on_buttonReverseShell_clicked() {
     executeCLI("cmd");
 }
 
-//
+// Run the function corresponding to (the index of) the currently selected action
 void MainWindow::on_buttonExecuteAction_clicked() {
-    actions[ui->dropdownActions->currentIndex()]();
+    int actionIndex = ui->dropdownActions->currentIndex();
+    t_memberFunction action = actions[actionIndex];
+    (this->*action)();
 }
 
 // Run the `systeminfo` command on the target machine; print output to the Result pane
