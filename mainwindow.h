@@ -32,16 +32,26 @@ private:
     QString psexec;  // Path to unpacked psexec.exe
     bool buttonsEnabled;
 
-    typedef void (*t_action)();  // Pointer to a void input and output function
-    t_action actions = {
-        &this->action_SystemInfo
-    };
+    typedef void (MainWindow::*t_memberFunction)(void);
+    t_memberFunction actions[8];
 
-    void executeCLI(const QString &computerName, const QString &command);
+    void executeCLI(const QString &command);
+    void executeToResultPane(const QString &command);
+
+    // To keep any other commands from being run while something is printing to
+    // the result pane
     void disableButtons();
     void enableButtons();
 
-    void action_SystemInfo();
+    // Functions accessible from the Actions dropdown menu
+    void action_systemInfo();
+    void action_reactivateWindows();
+    void action_getADJoinStatus();
+    void action_reinstallOffice365();
+    void action_installPrinter();
+    void action_shutDown();
+    void action_restart();
+    void action_sfcDISM();
 };
 
 #endif // MAINWINDOW_H
