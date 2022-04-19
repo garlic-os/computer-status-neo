@@ -1,5 +1,7 @@
 /**
  * Roadmap
+ * - confirm potentially destructive actions
+ * - finish Install Printer action
  * - allow to run commands as different user
  * - rename computer?
  * - domain rejoin?
