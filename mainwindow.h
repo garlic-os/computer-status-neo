@@ -35,6 +35,8 @@ private:
     typedef void (MainWindow::*t_memberFunction)(void);
     t_memberFunction actions[8];
 
+    void updateLabelRunningAs();
+
     void executeCLI(const QString &command);
     void executeToResultPane(const QString &command);
 

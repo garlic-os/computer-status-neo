@@ -30,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     tempDir(new QTemporaryDir),
     buttonsEnabled(true) {
-        on_inputComputer_textChanged();
+        updateLabelRunningAs();
 
         // Unpack psexec.exe
         if (!tempDir->isValid()) {
@@ -58,11 +58,23 @@ MainWindow::MainWindow(QWidget *parent) :
         actions[7] = &MainWindow::action_sfcDISM;
 
         ui->setupUi(this);
+        on_inputComputer_textChanged();
 }
 
 MainWindow::~MainWindow() {
     delete ui;
     delete tempDir;
+}
+
+void MainWindow::updateLabelRunningAs() {
+    auto process = new QProcess(this);
+    process->start("whoami");
+    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=]() {
+        QString whoami = process->readLine();
+        whoami.chop(2);
+        ui->labelRunningAs->setText("Running as: " + whoami);
+        delete process;
+    });
 }
 
 // Run a remote command in a CMD window
@@ -110,7 +122,7 @@ void MainWindow::executeToResultPane(const QString &command) {
 }
 
 void MainWindow::disableButtons() {
-    QList<QPushButton *> buttonsList = this->findChildren<QPushButton *>();
+    QList<QPushButton *> buttonsList = ui->tabSingleComputer->findChildren<QPushButton *>();
     for (int i = 0; i < buttonsList.count(); i++){
         buttonsList.at(i)->setEnabled(false);
     }
@@ -131,8 +143,8 @@ void MainWindow::enableButtons() {
 // looking it up in NetDB or anything.
 // Honestly, I just don't want you to type "*" here
 void MainWindow::on_inputComputer_textChanged() {
-    static QRegularExpression pattern("\\w");
-    if (ui->inputComputer->text().contains(pattern) && !buttonsEnabled) {
+    QRegularExpression pattern("\\w");
+    if (ui->inputComputer->text().contains(pattern)) {  // TODO: Only run when necessary
         enableButtons();
     } else {
         disableButtons();
