@@ -40,3 +40,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     computerstatusneo.qrc
+
+win32:RC_ICONS += computer_on_fire.ico
