@@ -38,6 +38,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    computerstatusneo.qrc
+    computerstatusneo.qrc \
+    qdarkstyle/style.qrc \
 
 win32:RC_ICONS += computer_on_fire.ico

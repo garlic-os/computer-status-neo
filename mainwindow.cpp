@@ -2,7 +2,7 @@
  * Roadmap
  * - confirm potentially destructive actions
  * - finish Install Printer action
- * - allow to run commands as different user
+ * - finish Switch User button
  * - rename computer?
  * - domain rejoin?
  */
@@ -16,6 +16,7 @@
 #include <QProcess>
 #include <QPushButton>
 #include <QRegularExpression>
+#include <QSettings>
 
 // For the "show console window" shenanigans
 #define WIN32_LEAN_AND_MEAN
@@ -59,6 +60,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
         ui->setupUi(this);
         on_inputComputer_textChanged();
+
+        // Set theme
+        QString themeName;
+        QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", QSettings::NativeFormat);
+        if (settings.value("AppsUseLightTheme", 1).toInt() == 0) {
+            QFile f(":qdarkstyle/style.qss");
+            f.open(QFile::ReadOnly | QFile::Text);
+            QTextStream ts(&f);
+            qApp->setStyleSheet(ts.readAll());
+        }
 }
 
 MainWindow::~MainWindow() {
