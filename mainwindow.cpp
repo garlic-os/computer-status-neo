@@ -11,6 +11,7 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
+#include <QFileSystemWatcher>
 #include <QList>
 #include <QObject>
 #include <QProcess>
@@ -110,31 +111,30 @@ void MainWindow::executeCLI(const QString &command) {
 
 // Run a remote command and print its output to the Result pane
 void MainWindow::executeToResultPane(const QString &command) {
-    ui->textResult->setPlainText("");
+    disableButtons();
+    ui->textResult->setPlainText("Connecting...");
     auto process = new QProcess(this);
 
-    // We wrap the process in cmd to properly capture the remote computer's stdout
-//    process->start("cmd.exe /c \"" + psexec + " /accepteula \\\\" + ui->inputComputer->text() + " systeminfo\"");
-    process->start(psexec + " /accepteula \\\\" + ui->inputComputer->text() + " " + command);
+    // PsExec's remote process's output is only readable by wrapping it in CMD and
+    // redirecting the output to a file on the remote machine.
+    // It's a long story.
+    QString computerName = "\\\\" + ui->inputComputer->text();
+    QString logPath = computerName + "\\c$\\it-comp-stat.out";
+    process->start(psexec + " /accepteula " + computerName + " cmd.exe /c \"" + command + "\" > C:\\it-comp-stat.out");
 
-    qDebug() << "Running result-pane command...";
-
-    QObject::connect(process, &QProcess::readyReadStandardOutput, this, [=]() {
-        qDebug() << process->readAllStandardOutput();
-//        ui->textResult->setPlainText(ui->textResult->toPlainText() + QString(process->readAllStandardOutput()));
-    });
-
-    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-        [=](/*int exitCode, QProcess::ExitStatus exitStatus*/) {
-            qDebug() << process->readAllStandardError();
-            qDebug() << process->readAllStandardOutput();
-            delete process;
+    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=]() {
+        QFile logFile(logPath);
+        logFile.open(QFile::ReadOnly);
+        ui->textResult->setPlainText(logFile.readAll().mid(2));
+        enableButtons();
+        QFile::remove(logPath);
+        delete process;
     });
 }
 
 void MainWindow::disableButtons() {
     QList<QPushButton *> buttonsList = ui->tabSingleComputer->findChildren<QPushButton *>();
-    for (int i = 0; i < buttonsList.count(); i++){
+    for (int i = 0; i < buttonsList.count(); i++) {
         buttonsList.at(i)->setEnabled(false);
     }
     buttonsEnabled = false;
@@ -142,7 +142,7 @@ void MainWindow::disableButtons() {
 
 void MainWindow::enableButtons() {
     QList<QPushButton *> buttonsList = this->findChildren<QPushButton *>();
-    for (int i = 0; i < buttonsList.count(); i++){
+    for (int i = 0; i < buttonsList.count(); i++) {
         buttonsList.at(i)->setEnabled(true);
     }
     buttonsEnabled = true;
@@ -206,7 +206,7 @@ void MainWindow::on_buttonExecuteAction_clicked() {
 
 // Run the `systeminfo` command on the target machine; print output to the Result pane
 void MainWindow::action_systemInfo() {
-    executeToResultPane("systeminfo");
+    executeToResultPane("systeminfo.exe");
 }
 
 // Good ol' KMS
