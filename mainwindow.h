@@ -32,9 +32,6 @@ private:
     QString psexec;  // Path to unpacked psexec.exe
     bool buttonsEnabled;
 
-    typedef void (MainWindow::*t_memberFunction)(void);
-    t_memberFunction actions[8];
-
     void updateLabelRunningAs();
 
     // Helper functions
@@ -49,6 +46,8 @@ private:
     void enableButtons();
 
     // Functions accessible from the Actions dropdown menu
+    typedef void (MainWindow::*t_memberFunction)(void);
+    t_memberFunction actions[8];
     void action_systemInfo();
     void action_reactivateWindows();
     void action_getADJoinStatus();
