@@ -40,6 +40,7 @@ private:
     // Helper functions
     void executeCLI(const QString &command);
     void executeToResultPane(const QString &command);
+    inline const QString compName() const;
     bool confirm(const QString &message, const QString &title) const;
 
     // To keep any other commands from being run while something is printing to
