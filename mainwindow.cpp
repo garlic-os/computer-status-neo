@@ -1,6 +1,5 @@
 /**
  * Roadmap
- * - finish Install Printer action
  * - finish Switch User button
  * - rename computer?
  * - domain rejoin?
@@ -236,8 +235,13 @@ void MainWindow::action_reinstallOffice365() {
 }
 
 void MainWindow::action_installPrinter() {
-    // QString printerName = getPrinterName();
-    // executeCLI("rundll32 printui.dll PrintUIEntry /in /n \\winprint.mst.edu\\" + printerName);
+    bool ok;
+    QString printerName = QInputDialog::getText(
+        this, compName() + ": Install printer",
+        "Enter the name of the printer to install:",
+        QLineEdit::Normal, "", &ok, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+    if (ok && !printerName.isEmpty())
+        executeCLI("rundll32 printui.dll PrintUIEntry /in /n \\winprint.mst.edu\\" + printerName);
 }
 
 void MainWindow::action_shutDown() {
