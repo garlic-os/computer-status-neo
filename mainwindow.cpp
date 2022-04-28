@@ -78,6 +78,10 @@ MainWindow::~MainWindow() {
     delete tempDir;
 }
 
+inline const QString MainWindow::compName() const {
+    return ui->inputComputer->text();
+}
+
 void MainWindow::updateLabelRunningAs() {
     auto process = new QProcess(this);
     process->start("whoami");
@@ -101,7 +105,7 @@ void MainWindow::executeCLI(const QString &command) {
 
     // Run the command on the target computer through PsExec
     // Command is wrapped in a cmd window to capture remote stdout/stderr
-    process->start("cmd.exe /k \"" + psexec + " /accepteula /s \\\\" + ui->inputComputer->text() + " " + command + "\"");
+    process->start("cmd.exe /k \"" + psexec + " /accepteula /s \\\\" + compName() + " " + command + "\"");
 
     // Delete process object when the CMD window closes
     QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=]() {
@@ -118,7 +122,7 @@ void MainWindow::executeToResultPane(const QString &command) {
     // PsExec's remote process's output is only readable by wrapping it in CMD and
     // redirecting the output to a file on the remote machine.
     // It's a long story.
-    QString computerName = "\\\\" + ui->inputComputer->text();
+    QString computerName = "\\\\" + compName();
     QString logPath = computerName + "\\c$\\it-comp-stat.out";
     process->start(psexec + " /accepteula " + computerName + " cmd.exe /c \"" + command + "\" > C:\\it-comp-stat.out");
 
@@ -155,7 +159,7 @@ void MainWindow::enableButtons() {
 // Honestly, I just don't want you to type "*" here
 void MainWindow::on_inputComputer_textChanged() {
     QRegularExpression pattern("\\w");
-    if (ui->inputComputer->text().contains(pattern)) {  // TODO: Only run when necessary
+    if (compName().contains(pattern)) {  // TODO: Only run when necessary
         enableButtons();
     } else {
         disableButtons();
@@ -164,23 +168,23 @@ void MainWindow::on_inputComputer_textChanged() {
 
 // Start a remote desktop session on the target machine
 void MainWindow::on_buttonRemoteDesktop_clicked() {
-    QProcess::startDetached("mstsc.exe /v:" + ui->inputComputer->text());
+    QProcess::startDetached("mstsc.exe /v:" + compName());
 }
 
 // Offer to start a remote assistance session on the target machine
 void MainWindow::on_buttonRemoteAssistance_clicked() {
-    QProcess::startDetached("msra.exe /offerRA" + ui->inputComputer->text());
+    QProcess::startDetached("msra.exe /offerRA" + compName());
 }
 
 // Open Computer Management locally, for the target machine
 void MainWindow::on_buttonComputerManagement_clicked() {
-    QProcess::startDetached("compmgmt.msc /computer=" + ui->inputComputer->text());
+    QProcess::startDetached("compmgmt.msc /computer=" + compName());
 }
 
 // Open the default c$ Admin Share of the target machine in Explorer
 void MainWindow::on_buttonCDollarAdminShare_clicked() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
-        "\\\\" + ui->inputComputer->text() + "\\c$"
+        "\\\\" + compName() + "\\c$"
     ));
 }
 
@@ -188,7 +192,7 @@ void MainWindow::on_buttonCDollarAdminShare_clicked() {
 void MainWindow::on_buttonNetDB_clicked() {
     QDesktopServices::openUrl(
         "https://itweb.mst.edu/auth-cgi-bin/cgiwrap/netdb/view-host.pl?host=" +
-        ui->inputComputer->text() + ".managed.mst.edu"
+        compName() + ".managed.mst.edu"
     );
 }
 
