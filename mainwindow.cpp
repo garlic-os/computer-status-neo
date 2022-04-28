@@ -1,6 +1,5 @@
 /**
  * Roadmap
- * - confirm potentially destructive actions
  * - finish Install Printer action
  * - finish Switch User button
  * - rename computer?
@@ -12,7 +11,9 @@
 #include <QDir>
 #include <QFile>
 #include <QFileSystemWatcher>
+#include <QInputDialog>
 #include <QList>
+#include <QMessageBox>
 #include <QObject>
 #include <QProcess>
 #include <QPushButton>
@@ -80,6 +81,12 @@ MainWindow::~MainWindow() {
 
 inline const QString MainWindow::compName() const {
     return ui->inputComputer->text();
+}
+
+bool MainWindow::confirm(const QString &message, const QString &title) const {
+    return QMessageBox::warning(this, title, message,
+                         QMessageBox::Ok | QMessageBox::Cancel,
+                         QMessageBox::Cancel) == QMessageBox::Ok;
 }
 
 void MainWindow::updateLabelRunningAs() {
@@ -215,7 +222,8 @@ void MainWindow::action_systemInfo() {
 
 // Good ol' KMS
 void MainWindow::action_reactivateWindows() {
-    executeCLI("slmgr /skms umad-kmsdfs-01.umad.umsystem.edu && slmgr /ato");
+    if (confirm("Are you sure you want to reactivate this computer's Windows license?", compName() + ": Reactivate Windows License"))
+        executeCLI("slmgr /skms umad-kmsdfs-01.umad.umsystem.edu && slmgr /ato");
 }
 
 void MainWindow::action_getADJoinStatus() {
@@ -223,7 +231,8 @@ void MainWindow::action_getADJoinStatus() {
 }
 
 void MainWindow::action_reinstallOffice365() {
-    executeCLI("R: && cd R:\\software\\appdeploy\\office.365\\x64 && setup.exe /configure configuration-test.xmlcd");
+    if (confirm("Are you sure you want to reinstall Office 365 on this computer?", compName() + ": Reinstall Microsoft Office 365"))
+        executeCLI("R: && cd R:\\software\\appdeploy\\office.365\\x64 && setup.exe /configure configuration-test.xmlcd");
 }
 
 void MainWindow::action_installPrinter() {
@@ -232,11 +241,13 @@ void MainWindow::action_installPrinter() {
 }
 
 void MainWindow::action_shutDown() {
-    executeCLI("shutdown -s -t 0");
+    if (confirm("Are you sure you want to shut down this computer?", compName() + ": Send shutdown signal"))
+        executeCLI("shutdown -s -t 0");
 }
 
 void MainWindow::action_restart() {
-    executeCLI("shutdown -r -t 0");
+    if (confirm("Are you sure you want to restart this computer?", compName() + ": Send restart signal"))
+        executeCLI("shutdown -r -t 0");
 }
 
 void MainWindow::action_sfcDISM() {
