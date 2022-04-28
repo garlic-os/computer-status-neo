@@ -109,8 +109,8 @@ void MainWindow::executeCLI(const QString &command) {
         args->startupInfo->dwFlags &=~ static_cast<unsigned long>(STARTF_USESTDHANDLES);
     });
 
-    // Run the command on the target computer through PsExec
-    // Command is wrapped in a cmd window to capture remote stdout/stderr
+    // Run the command on the target computer through PsExec.
+    // Command is wrapped in a CMD /k window so the output will stay when the command is done.
     process->start("cmd.exe /k \"" + psexec + " /accepteula /s \\\\" + compName() + " " + command + "\"");
 
     // Delete process object when the CMD window closes
@@ -132,6 +132,7 @@ void MainWindow::executeToResultPane(const QString &command) {
     QString logPath = computerName + "\\c$\\it-comp-stat.out";
     process->start(psexec + " /accepteula " + computerName + " cmd.exe /c \"" + command + "\" > C:\\it-comp-stat.out");
 
+    // When process finishes
     QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=]() {
         QFile logFile(logPath);
         logFile.open(QFile::ReadOnly);
@@ -158,11 +159,11 @@ void MainWindow::enableButtons() {
     buttonsEnabled = true;
 }
 
-// Ensure that the computer name is valid
+// Ensure that the computer name is valid.
 // This really just means it's a string that the commands it's passed to will
 // accept as an argument, and not necessarily a valid computer name. It's not
 // looking it up in NetDB or anything.
-// Honestly, I just don't want you to type "*" here
+// Honestly, I just don't want you to type "*" here.
 void MainWindow::on_inputComputer_textChanged() {
     QRegularExpression pattern("\\w");
     if (compName().contains(pattern)) {  // TODO: Only run when necessary
