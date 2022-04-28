@@ -165,7 +165,7 @@ void MainWindow::enableButtons() {
 // looking it up in NetDB or anything.
 // Honestly, I just don't want you to type "*" here.
 void MainWindow::on_inputComputer_textChanged() {
-    QRegularExpression pattern("\\w");
+    static QRegularExpression pattern("\\w");
     if (compName().contains(pattern)) {  // TODO: Only run when necessary
         enableButtons();
     } else {
