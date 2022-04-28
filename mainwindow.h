@@ -37,6 +37,7 @@ private:
 
     void updateLabelRunningAs();
 
+    // Helper functions
     void executeCLI(const QString &command);
     void executeToResultPane(const QString &command);
     bool confirm(const QString &message, const QString &title) const;
