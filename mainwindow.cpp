@@ -59,6 +59,9 @@ MainWindow::MainWindow(QWidget *parent) :
         actions[6] = &MainWindow::action_restart;
         actions[7] = &MainWindow::action_sfcDISM;
 
+        // Disable unused help button in dialog windows
+        QApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
+
         ui->setupUi(this);
         on_inputComputer_textChanged();
 
