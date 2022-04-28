@@ -3,6 +3,7 @@
  * - finish Switch User button
  * - rename computer?
  * - domain rejoin?
+ * - uninstall and install AppsAnywhere actions
  */
 
 #include <QDebug>
