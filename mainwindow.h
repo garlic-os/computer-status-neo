@@ -39,6 +39,7 @@ private:
 
     void executeCLI(const QString &command);
     void executeToResultPane(const QString &command);
+    bool confirm(const QString &message, const QString &title) const;
 
     // To keep any other commands from being run while something is printing to
     // the result pane
