@@ -362,6 +362,11 @@
             </item>
             <item>
              <property name="text">
+              <string>Query Users</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
               <string>Reactivate Windows License</string>
              </property>
             </item>
