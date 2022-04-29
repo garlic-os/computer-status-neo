@@ -4,6 +4,7 @@
  * - rename computer?
  * - domain rejoin?
  * - uninstall and install AppsAnywhere actions
+ * - why isn't the spacer in the actions layout working
  */
 
 #include <QDebug>
