@@ -6,9 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>799</width>
-    <height>527</height>
+    <width>835</width>
+    <height>575</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>10</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Computer Status Neo</string>
@@ -18,6 +23,9 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <layout class="QFormLayout" name="formLayout"/>
+    </item>
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="sizePolicy">
@@ -40,7 +48,7 @@
         <string notr="true"/>
        </property>
        <attribute name="title">
-        <string>Single Computer Mode</string>
+        <string>Single Computer</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
@@ -52,13 +60,13 @@
            <widget class="QWidget" name="widget" native="true">
             <property name="minimumSize">
              <size>
-              <width>163</width>
+              <width>171</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>163</width>
+              <width>16777215</width>
               <height>16777215</height>
              </size>
             </property>
@@ -67,11 +75,11 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>161</width>
-               <height>360</height>
+               <width>171</width>
+               <height>401</height>
               </rect>
              </property>
-             <layout class="QVBoxLayout" name="mainLeft" stretch="0,0,0,0,0,0,0,0,0">
+             <layout class="QVBoxLayout" name="mainLeft" stretch="0,0,0,0,0,0,0,0,0,0">
               <property name="spacing">
                <number>6</number>
               </property>
@@ -93,7 +101,10 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>Computer to Query</string>
+                 <string>Computer to &amp;Query</string>
+                </property>
+                <property name="buddy">
+                 <cstring>inputComputer</cstring>
                 </property>
                </widget>
               </item>
@@ -101,22 +112,16 @@
                <widget class="QLineEdit" name="inputComputer">
                 <property name="maximumSize">
                  <size>
-                  <width>163</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="buttonNetDB">
-                <property name="maximumSize">
-                 <size>
-                  <width>163</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
+               <widget class="QPushButton" name="buttonPing">
                 <property name="text">
-                 <string>&amp;NetDB</string>
+                 <string>&amp;Ping</string>
                 </property>
                </widget>
               </item>
@@ -124,7 +129,7 @@
                <widget class="QPushButton" name="buttonRemoteDesktop">
                 <property name="maximumSize">
                  <size>
-                  <width>163</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -137,7 +142,7 @@
                <widget class="QPushButton" name="buttonRemoteAssistance">
                 <property name="maximumSize">
                  <size>
-                  <width>163</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -150,7 +155,7 @@
                <widget class="QPushButton" name="buttonCDollarAdminShare">
                 <property name="maximumSize">
                  <size>
-                  <width>163</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -163,7 +168,7 @@
                <widget class="QPushButton" name="buttonComputerManagement">
                 <property name="maximumSize">
                  <size>
-                  <width>163</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -176,12 +181,25 @@
                <widget class="QPushButton" name="buttonReverseShell">
                 <property name="maximumSize">
                  <size>
-                  <width>163</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
                 <property name="text">
                  <string>Reverse &amp;Shell</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="buttonNetDB">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>&amp;NetDB</string>
                 </property>
                </widget>
               </item>
@@ -222,7 +240,10 @@
             <item>
              <widget class="QLabel" name="labelResult">
               <property name="text">
-               <string>Result</string>
+               <string>&amp;Result</string>
+              </property>
+              <property name="buddy">
+               <cstring>textResult</cstring>
               </property>
              </widget>
             </item>
@@ -237,6 +258,12 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="font">
+               <font>
+                <family>Consolas</family>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
               <property name="readOnly">
                <bool>true</bool>
               </property>
@@ -250,6 +277,12 @@
          <layout class="QHBoxLayout" name="actionsBar">
           <property name="sizeConstraint">
            <enum>QLayout::SetDefaultConstraint</enum>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
           </property>
           <item>
            <widget class="QPushButton" name="buttonExecuteAction">
@@ -267,12 +300,13 @@
             </property>
             <property name="maximumSize">
              <size>
-              <width>169</width>
+              <width>171</width>
               <height>16777215</height>
              </size>
             </property>
             <property name="font">
              <font>
+              <pointsize>10</pointsize>
               <weight>75</weight>
               <bold>true</bold>
              </font>
@@ -303,10 +337,13 @@
              <enum>Qt::LeftToRight</enum>
             </property>
             <property name="text">
-             <string>Actions:</string>
+             <string>Ac&amp;tions:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+            <property name="buddy">
+             <cstring>dropdownActions</cstring>
             </property>
            </widget>
           </item>
@@ -340,6 +377,11 @@
             </item>
             <item>
              <property name="text">
+              <string>Get Installed Printers</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
               <string>Install Printer...</string>
              </property>
             </item>
@@ -361,28 +403,12 @@
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Maximum</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Ignored</enum>
+             <enum>QSizePolicy::Minimum</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -397,20 +423,57 @@
        </layout>
        <zorder></zorder>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="tabLab">
        <attribute name="title">
-        <string>Tab 2</string>
+        <string>Lab</string>
        </attribute>
+       <widget class="QLabel" name="label">
+        <property name="geometry">
+         <rect>
+          <x>180</x>
+          <y>20</y>
+          <width>501</width>
+          <height>411</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="computerstatusneo.qrc">:/under-construction-1.gif</pixmap>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="tabReports">
+       <attribute name="title">
+        <string>Reports</string>
+       </attribute>
+       <widget class="QLabel" name="label_2">
+        <property name="geometry">
+         <rect>
+          <x>280</x>
+          <y>70</y>
+          <width>201</width>
+          <height>291</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="computerstatusneo.qrc">:/under-construction-2.gif</pixmap>
+        </property>
+       </widget>
       </widget>
      </widget>
     </item>
     <item>
      <layout class="QHBoxLayout" name="statusBar" stretch="0,1">
       <property name="leftMargin">
-       <number>10</number>
+       <number>0</number>
       </property>
       <property name="rightMargin">
-       <number>10</number>
+       <number>0</number>
       </property>
       <item>
        <widget class="QLabel" name="labelRunningAs">
@@ -432,6 +495,9 @@
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
+        <property name="buddy">
+         <cstring>buttonSwitchUser</cstring>
+        </property>
        </widget>
       </item>
       <item>
@@ -444,7 +510,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>83</width>
+          <width>96</width>
           <height>23</height>
          </size>
         </property>
@@ -459,6 +525,23 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <tabstops>
+  <tabstop>inputComputer</tabstop>
+  <tabstop>buttonPing</tabstop>
+  <tabstop>buttonRemoteDesktop</tabstop>
+  <tabstop>buttonRemoteAssistance</tabstop>
+  <tabstop>buttonCDollarAdminShare</tabstop>
+  <tabstop>buttonComputerManagement</tabstop>
+  <tabstop>buttonReverseShell</tabstop>
+  <tabstop>buttonNetDB</tabstop>
+  <tabstop>buttonExecuteAction</tabstop>
+  <tabstop>dropdownActions</tabstop>
+  <tabstop>textResult</tabstop>
+  <tabstop>buttonSwitchUser</tabstop>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
+ <resources>
+  <include location="computerstatusneo.qrc"/>
+ </resources>
  <connections/>
 </ui>

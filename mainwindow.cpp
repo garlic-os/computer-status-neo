@@ -27,6 +27,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+// I use this ugly thing everywhere so it's going in its own variable.
+// "Process Finished Overload"
+const static auto pfo = QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished);
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -48,23 +52,33 @@ MainWindow::MainWindow(QWidget *parent) :
         //     to decide which function to run.
         // Also if you change/add any action, you must add all of these things:
         // 1. A pointer to its function here in the actions array
-        // 1. Its function signature in mainwindow.h
-        // 2. Its function implementation here in mainwindow.cpp
-        // 3. An entry for it in the UI's Actions dropdown menu (or "Combobox", whatever, QT)
+        // 2. Update the indices of all the entries after it
+        // 3. Increment the size of the actions array in mainwindow.h
+        // 4. Its function signature in mainwindow.h
+        // 5. Its function implementation here in mainwindow.cpp
+        // 6. An entry for it in the UI's Actions dropdown menu (or "Combobox", whatever, QT)
         actions[0] = &MainWindow::action_systemInfo;
-        actions[1] = &MainWindow::action_reactivateWindows;
-        actions[2] = &MainWindow::action_getADJoinStatus;
-        actions[3] = &MainWindow::action_reinstallOffice365;
-        actions[4] = &MainWindow::action_installPrinter;
-        actions[5] = &MainWindow::action_shutDown;
-        actions[6] = &MainWindow::action_restart;
-        actions[7] = &MainWindow::action_sfcDISM;
+        actions[1] = &MainWindow::action_queryUsers;
+        actions[2] = &MainWindow::action_reactivateWindows;
+        actions[3] = &MainWindow::action_getADJoinStatus;
+        actions[4] = &MainWindow::action_reinstallOffice365;
+        actions[5] = &MainWindow::action_getInstalledPrinters;
+        actions[6] = &MainWindow::action_installPrinter;
+        actions[7] = &MainWindow::action_shutDown;
+        actions[8] = &MainWindow::action_restart;
+        actions[9] = &MainWindow::action_sfcDISM;
 
         // Disable unused help button in dialog windows
         QApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
 
         ui->setupUi(this);
-        on_inputComputer_textChanged();
+        ui->inputComputer->setFocus();
+
+        // Set default computer query to self
+        QProcess process;
+        process.start("hostname");
+        process.waitForFinished();
+        ui->inputComputer->setText(process.readAllStandardOutput().chopped(2).toLower());
 
         // Set theme
         QString themeName;
@@ -87,7 +101,7 @@ inline const QString MainWindow::compName() const {
 }
 
 bool MainWindow::confirm(const QString &message, const QString &title) const {
-    return QMessageBox::warning(this, title, message,
+    return QMessageBox::warning(nullptr, title, message,
                          QMessageBox::Ok | QMessageBox::Cancel,
                          QMessageBox::Cancel) == QMessageBox::Ok;
 }
@@ -95,16 +109,14 @@ bool MainWindow::confirm(const QString &message, const QString &title) const {
 void MainWindow::updateLabelRunningAs() {
     auto process = new QProcess(this);
     process->start("whoami");
-    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=]() {
-        QString whoami = process->readLine();
-        whoami.chop(2);
-        ui->labelRunningAs->setText("Running as: " + whoami);
+    QObject::connect(process, pfo, [=]() {
+        ui->labelRunningAs->setText("Running as: " + process->readLine().chopped(2));
         delete process;
     });
 }
 
 // Run a remote command in a CMD window
-void MainWindow::executeCLI(const QString &command) {
+void MainWindow::executeCLI(const QString &command, bool remote) {
     auto process = new QProcess(this);
 
     // Show console window (hidden by default)
@@ -113,37 +125,60 @@ void MainWindow::executeCLI(const QString &command) {
         args->startupInfo->dwFlags &=~ static_cast<unsigned long>(STARTF_USESTDHANDLES);
     });
 
-    // Run the command on the target computer through PsExec.
-    // Command is wrapped in a CMD /k window so the output will stay when the command is done.
-    process->start("cmd.exe /k \"" + psexec + " /accepteula /s \\\\" + compName() + " " + command + "\"");
+    if (remote) {
+        // Run the command on the target computer through PsExec.
+        // Command is wrapped in a CMD /k window so the output will stay when the command is done.
+        process->start("cmd.exe /k \"" + psexec + " /accepteula /s /n 10 \\\\" + compName() + " " + command + "\"");
+    } else {
+        process->start(command);
+    }
 
     // Delete process object when the CMD window closes
-    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=]() {
+    QObject::connect(process, pfo, [=]() {
         delete process;
     });
 }
 
 // Run a remote command and print its output to the Result pane
-void MainWindow::executeToResultPane(const QString &command) {
+void MainWindow::executeToResultPane(const QString &command, bool remote, bool streamStderr) {
     disableButtons();
     ui->textResult->setPlainText("Connecting...");
     auto process = new QProcess(this);
 
-    // PsExec's remote process's output is only readable by wrapping it in CMD and
-    // redirecting the output to a file on the remote machine.
-    // It's a long story.
-    QString computerName = "\\\\" + compName();
-    QString logPath = computerName + "\\c$\\it-comp-stat.out";
-    process->start(psexec + " /accepteula " + computerName + " cmd.exe /c \"" + command + "\" > C:\\it-comp-stat.out");
+    if (remote) {
+        // PsExec's remote process's output is only readable by wrapping it in CMD and
+        // redirecting the output to a file on the remote machine.
+        // It's a long story.
+        QString logPath = "\\\\" + compName() + "\\c$\\it-comp-stat.out";
+        process->start(psexec + " /accepteula /n 10 \\\\" + compName() + " cmd.exe /c \"" + command + "\" > C:\\it-comp-stat.out");
 
-    // When process finishes
-    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=]() {
-        QFile logFile(logPath);
-        logFile.open(QFile::ReadOnly);
-        ui->textResult->setPlainText(logFile.readAll().mid(2));
-        enableButtons();
-        QFile::remove(logPath);
-        delete process;
+        // When process finishes
+        QObject::connect(process, pfo, [=](int returnCode) {
+            switch (returnCode) {
+                case 0: {
+                    QFile logFile(logPath);
+                    logFile.open(QFile::ReadOnly);
+                    ui->textResult->setPlainText(logFile.readAll().mid(2));
+                    QFile::remove(logPath);
+                    break;
+                } case 1460: {
+                    ui->textResult->setPlainText("Connection timed out.");
+                    break;
+                }
+            }
+            enableButtons();
+            delete process;
+        });
+    } else {
+        process->start(command);
+        QObject::connect(process, pfo, [=]() {
+            ui->textResult->setPlainText(process->readAllStandardOutput().mid(2));
+            enableButtons();
+            delete process;
+        });
+    }
+    QObject::connect(process, &QProcess::readyReadStandardError, this, [=]() {
+        ui->textResult->setPlainText(process->readAllStandardOutput().mid(2));
     });
 }
 
@@ -175,6 +210,14 @@ void MainWindow::on_inputComputer_textChanged() {
     } else {
         disableButtons();
     }
+}
+
+void MainWindow::on_inputComputer_returnPressed() {
+    on_buttonExecuteAction_clicked();
+}
+
+void MainWindow::on_buttonPing_clicked() {
+    executeToResultPane("ping /n 1 " + compName(), false);
 }
 
 // Start a remote desktop session on the target machine
@@ -221,7 +264,11 @@ void MainWindow::on_buttonExecuteAction_clicked() {
 
 // Run the `systeminfo` command on the target machine; print output to the Result pane
 void MainWindow::action_systemInfo() {
-    executeToResultPane("systeminfo.exe");
+    executeToResultPane("systeminfo /s " + compName(), false, true);
+}
+
+void MainWindow::action_queryUsers() {
+    executeToResultPane("query user /server:" + compName(), false);
 }
 
 // Good ol' KMS
@@ -239,6 +286,10 @@ void MainWindow::action_reinstallOffice365() {
         executeCLI("R: && cd R:\\software\\appdeploy\\office.365\\x64 && setup.exe /configure configuration-test.xmlcd");
 }
 
+void MainWindow::action_getInstalledPrinters() {
+    executeToResultPane("powershell -c \"Get-WMIObject Win32_Printer\"");
+}
+
 void MainWindow::action_installPrinter() {
     bool ok;
     QString printerName = QInputDialog::getText(
@@ -246,7 +297,7 @@ void MainWindow::action_installPrinter() {
         "Enter the name of the printer to install:",
         QLineEdit::Normal, "", &ok, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
     if (ok && !printerName.isEmpty())
-        executeCLI("rundll32 printui.dll PrintUIEntry /in /n \\winprint.mst.edu\\" + printerName);
+        executeCLI("rundll32 printui.dll PrintUIEntry /c \\\\" + compName() + " /in /n \\\\winprint.mst.edu\\" + printerName, false);
 }
 
 void MainWindow::action_shutDown() {
