@@ -23,7 +23,7 @@
 
 // For the "show console window" shenanigans
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include <windows.h>  // CREATE_NEW_CONSOLE, STARTF_USESTDHANDLES
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
