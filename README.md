@@ -1,5 +1,5 @@
 # <img src="computer_on_fire.ico" alt="Computer on fire" height="32"/> Computer Status Neo
-_C++ rewrite of Computer Status Tool © 2015 Chris Bucher_
+_Qt rewrite of Computer Status Tool © 2015 Chris Bucher_
 
 WMIC is deprecated as of Windows 10 21H1. With its removal coming at an unknown but inevitable date, we've decided we need to move Computer Status Tool away from WMIC. And also that it would likely be better to re-write it from the ground up in the process.
 
