@@ -47,27 +47,26 @@ MainWindow::MainWindow(QWidget *parent) :
         psexec = QDir::toNativeSeparators(tempDir->path() + "/psexec.exe");
         QFile::copy(":/psexec.exe", psexec);
 
-        // Populate the Actions array.
-        // NB: The order of functions here and list items in the UI's dropdown
-        //     MUST be the same. The app uses the INDEX of the selected action
-        //     to decide which function to run.
-        // Also if you change/add any action, you must add all of these things:
-        // 1. A pointer to its function here in the actions array
-        // 2. Update the indices of all the entries after it
-        // 3. Increment the size of the actions array in mainwindow.h
-        // 4. Its function signature in mainwindow.h
-        // 5. Its function implementation here in mainwindow.cpp
-        // 6. An entry for it in the UI's Actions dropdown menu (or "Combobox", whatever, QT)
-        actions[0] = &MainWindow::action_systemInfo;
-        actions[1] = &MainWindow::action_queryUsers;
-        actions[2] = &MainWindow::action_reactivateWindows;
-        actions[3] = &MainWindow::action_getADJoinStatus;
-        actions[4] = &MainWindow::action_reinstallOffice365;
-        actions[5] = &MainWindow::action_getInstalledPrinters;
-        actions[6] = &MainWindow::action_installPrinter;
-        actions[7] = &MainWindow::action_shutDown;
-        actions[8] = &MainWindow::action_restart;
-        actions[9] = &MainWindow::action_sfcDISM;
+        // Populate the Actions map.
+        // NB: If you change/add any action, you must update all of these things:
+        //     1. Its entry to this map
+        //     2. Its function signature in mainwindow.h
+        //     3. Its function implementation here in mainwindow.cpp
+        //     4. Its entry in the UI's Actions dropdown menu (or "Combobox", whatever, QT)
+        actions = {
+            { "System Info", &MainWindow::action_systemInfo },
+            { "Query Users", &MainWindow::action_queryUsers },
+            { "Reactivate Windows License", &MainWindow::action_reactivateWindows },
+            { "Get AD Join Status", &MainWindow::action_getADJoinStatus },
+            { "Reinstall Office 365", &MainWindow::action_reinstallOffice365 },
+            { "Get Installed Printers", &MainWindow::action_getInstalledPrinters },
+            { "Install printer...", &MainWindow::action_installPrinter },
+            { "Shut Down", &MainWindow::action_shutDown },
+            { "Restart", &MainWindow::action_restart },
+            { "Run SFC and DISM", &MainWindow::action_sfcDISM },
+            { "Uninstall AppsAnywhere", &MainWindow::action_uninstallAppsAnywhere },
+            { "Install AppsAnywhere", &MainWindow::action_installAppsAnywhere }
+        };
 
         // Disable unused help button in dialog windows
         QApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
@@ -258,8 +257,8 @@ void MainWindow::on_buttonReverseShell_clicked() {
 
 // Run the function corresponding to (the index of) the currently selected action
 void MainWindow::on_buttonExecuteAction_clicked() {
-    int actionIndex = ui->dropdownActions->currentIndex();
-    t_memberFunction action = actions[actionIndex];
+    QString actionName = ui->dropdownActions->currentText();
+    t_memberFunction action = actions[actionName.toStdString()];
     (this->*action)();
 }
 
