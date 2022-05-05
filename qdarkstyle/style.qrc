@@ -81,30 +81,6 @@
         <file>rc/branch_open_focus@2x.png</file>
         <file>rc/branch_open_pressed.png</file>
         <file>rc/branch_open_pressed@2x.png</file>
-        <file>rc/checkbox_checked.png</file>
-        <file>rc/checkbox_checked@2x.png</file>
-        <file>rc/checkbox_checked_disabled.png</file>
-        <file>rc/checkbox_checked_disabled@2x.png</file>
-        <file>rc/checkbox_checked_focus.png</file>
-        <file>rc/checkbox_checked_focus@2x.png</file>
-        <file>rc/checkbox_checked_pressed.png</file>
-        <file>rc/checkbox_checked_pressed@2x.png</file>
-        <file>rc/checkbox_indeterminate.png</file>
-        <file>rc/checkbox_indeterminate@2x.png</file>
-        <file>rc/checkbox_indeterminate_disabled.png</file>
-        <file>rc/checkbox_indeterminate_disabled@2x.png</file>
-        <file>rc/checkbox_indeterminate_focus.png</file>
-        <file>rc/checkbox_indeterminate_focus@2x.png</file>
-        <file>rc/checkbox_indeterminate_pressed.png</file>
-        <file>rc/checkbox_indeterminate_pressed@2x.png</file>
-        <file>rc/checkbox_unchecked.png</file>
-        <file>rc/checkbox_unchecked@2x.png</file>
-        <file>rc/checkbox_unchecked_disabled.png</file>
-        <file>rc/checkbox_unchecked_disabled@2x.png</file>
-        <file>rc/checkbox_unchecked_focus.png</file>
-        <file>rc/checkbox_unchecked_focus@2x.png</file>
-        <file>rc/checkbox_unchecked_pressed.png</file>
-        <file>rc/checkbox_unchecked_pressed@2x.png</file>
         <file>rc/line_horizontal.png</file>
         <file>rc/line_horizontal@2x.png</file>
         <file>rc/line_horizontal_disabled.png</file>
@@ -209,6 +185,7 @@
         <file>rc/window_undock_focus@2x.png</file>
         <file>rc/window_undock_pressed.png</file>
         <file>rc/window_undock_pressed@2x.png</file>
+        <file>rc/checkmark.svg</file>
     </qresource>
     <qresource prefix="/qdarkstyle">
         <file>style.qss</file>
