@@ -33,7 +33,6 @@ private:
     Ui::MainWindow *ui;
     QTemporaryDir *tempDir;  // Temporary directory for storing psexec.exe
     QString psexec;  // Path to unpacked psexec.exe
-    bool buttonsEnabled;
 
     void updateLabelRunningAs();
 

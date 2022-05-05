@@ -36,8 +36,7 @@ const static auto pfo = QOverload<int, QProcess::ExitStatus>::of(&QProcess::fini
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    tempDir(new QTemporaryDir),
-    buttonsEnabled(true) {
+    tempDir(new QTemporaryDir) {
         updateLabelRunningAs();
 
         // Unpack psexec.exe
@@ -187,7 +186,6 @@ void MainWindow::disableButtons() {
     for (int i = 0; i < buttonsList.count(); i++) {
         buttonsList.at(i)->setEnabled(false);
     }
-    buttonsEnabled = false;
 }
 
 void MainWindow::enableButtons() {
@@ -195,7 +193,6 @@ void MainWindow::enableButtons() {
     for (int i = 0; i < buttonsList.count(); i++) {
         buttonsList.at(i)->setEnabled(true);
     }
-    buttonsEnabled = true;
 }
 
 // Ensure that the computer name is valid.
