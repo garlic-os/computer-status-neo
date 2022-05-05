@@ -311,7 +311,7 @@ void MainWindow::action_restart() {
 }
 
 void MainWindow::action_sfcDISM() {
-    executeCLI("sfc /scannow && dism /online /cleanup-image /restorehealth");
+    executeCLI("cmd /c \"sfc /scannow && dism /online /cleanup-image /restorehealth\"");
 }
 
 void MainWindow::action_uninstallAppsAnywhere() {
