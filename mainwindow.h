@@ -1,9 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <QMainWindow>
+#include <QProcess>
 #include <QString>
 #include <QTemporaryDir>
 
@@ -39,8 +41,11 @@ private:
     void updateLabelRunningAs();
 
     // Helper functions
+    using t_callback = std::function<void (const QProcess*)>;
+    const static inline t_callback dummy = [](const QProcess*){};
+
     void executeCLI(const QString &command, bool remote=true);
-    void executeToResultPane(const QString &command, bool remote=true, bool streamStderr=false);
+    void executeToResultPane(const QString &command, bool remote=true, bool streamStderr=false, const t_callback& callback=dummy);
     inline const QString compName() const;
     bool confirm(const QString &message, const QString &title) const;
 

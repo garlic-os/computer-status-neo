@@ -7,7 +7,6 @@
 #include <QList>
 #include <QMessageBox>
 #include <QObject>
-#include <QProcess>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSettings>
@@ -130,7 +129,9 @@ void MainWindow::executeCLI(const QString &command, bool remote) {
 }
 
 // Run a remote command and print its output to the Result pane
-void MainWindow::executeToResultPane(const QString &command, bool remote, bool streamStderr) {
+void MainWindow::executeToResultPane(const QString &command,
+                                     bool remote, bool streamStderr,
+                                     const t_callback& callback) {
     disableButtons();
     ui->textResult->setPlainText("Connecting...");
     auto process = new QProcess(this);
@@ -157,13 +158,16 @@ void MainWindow::executeToResultPane(const QString &command, bool remote, bool s
                 }
             }
             enableButtons();
+            callback(process);
             delete process;
         });
     } else {
         process->start(command);
         QObject::connect(process, pfo, [=]() {
             ui->textResult->setPlainText(process->readAllStandardOutput().mid(2));
+            qDebug() << process->readAllStandardError();
             enableButtons();
+            callback(process);
             delete process;
         });
     }
