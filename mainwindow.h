@@ -19,6 +19,7 @@ public:
 private slots:
     void on_inputComputer_textChanged();
     void on_inputComputer_returnPressed();
+    void on_dropdownActions_currentTextChanged(const QString &text);
     void on_buttonPing_clicked();
     void on_buttonRemoteDesktop_clicked();
     void on_buttonRemoteAssistance_clicked();
@@ -61,6 +62,8 @@ private:
     void action_shutDown();
     void action_restart();
     void action_sfcDISM();
+    void action_uninstallAppsAnywhere();
+    void action_installAppsAnywhere();
 };
 
 #endif // MAINWINDOW_H
