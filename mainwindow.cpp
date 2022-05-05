@@ -132,7 +132,7 @@ void MainWindow::executeCLI(const QString &command, bool remote) {
 void MainWindow::executeToResultPane(const QString &command,
                                      bool remote, bool streamStderr,
                                      const t_callback& callback) {
-    disableButtons();
+    setButtonsEnabled(false);
     ui->textResult->setPlainText("Connecting...");
     auto process = new QProcess(this);
 
@@ -157,7 +157,7 @@ void MainWindow::executeToResultPane(const QString &command,
                     break;
                 }
             }
-            enableButtons();
+            setButtonsEnabled(true);
             callback(process);
             delete process;
         });
@@ -166,7 +166,7 @@ void MainWindow::executeToResultPane(const QString &command,
         QObject::connect(process, pfo, [=]() {
             ui->textResult->setPlainText(process->readAllStandardOutput().mid(2));
             qDebug() << process->readAllStandardError();
-            enableButtons();
+            setButtonsEnabled(true);
             callback(process);
             delete process;
         });
@@ -179,17 +179,10 @@ void MainWindow::executeToResultPane(const QString &command,
     }
 }
 
-void MainWindow::disableButtons() {
-    QList<QPushButton *> buttonsList = ui->tabSingleComputer->findChildren<QPushButton *>();
+void MainWindow::setButtonsEnabled(bool enabled) {
+    static QList<QPushButton *> buttonsList = this->findChildren<QPushButton *>();
     for (int i = 0; i < buttonsList.count(); i++) {
-        buttonsList.at(i)->setEnabled(false);
-    }
-}
-
-void MainWindow::enableButtons() {
-    QList<QPushButton *> buttonsList = this->findChildren<QPushButton *>();
-    for (int i = 0; i < buttonsList.count(); i++) {
-        buttonsList.at(i)->setEnabled(true);
+        buttonsList.at(i)->setEnabled(enabled);
     }
 }
 
@@ -201,9 +194,9 @@ void MainWindow::enableButtons() {
 void MainWindow::on_inputComputer_textChanged(const QString &text) {
     static QRegularExpression pattern("\\w");
     if (text.contains(pattern)) {  // TODO: Only run when necessary
-        enableButtons();
+        setButtonsEnabled(true);
     } else {
-        disableButtons();
+        setButtonsEnabled(false);
     }
 }
 

@@ -51,8 +51,7 @@ private:
 
     // To keep any other commands from being run while something is printing to
     // the result pane
-    void disableButtons();
-    void enableButtons();
+    void setButtonsEnabled(bool enabled=true);
 
     // Functions accessible from the Actions dropdown menu
     typedef void (MainWindow::*t_memberFunction)(void);
