@@ -41,12 +41,15 @@ private:
 
     void updateLabelRunningAs();
 
-    // Helper functions
+    // Callback and dummy to use as default argument
     using t_callback = std::function<void (const QProcess*)>;
     const static inline t_callback dummy = [](const QProcess*){};
 
+    // Helper functions
     void executeCLI(const QString &command, bool remote=true);
-    void executeToResultPane(const QString &command, bool remote=true, bool streamStderr=false, const t_callback& callback=dummy);
+    void executeToResultPane(const QString &command,
+                             bool remote=true, bool streamStderr=false,
+                             const t_callback& callback=dummy);
     inline const QString compName() const;
     bool confirm(const QString &message, const QString &title) const;
 
