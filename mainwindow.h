@@ -32,6 +32,7 @@ private slots:
     void on_buttonNetDB_clicked();
     void on_buttonReverseShell_clicked();
     void on_buttonExecuteAction_clicked();
+    void on_buttonSwitchUser_clicked();
 
 private:
     Ui::MainWindow *ui;

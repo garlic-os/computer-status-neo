@@ -255,6 +255,10 @@ void MainWindow::on_buttonExecuteAction_clicked() {
     (this->*action)();
 }
 
+void MainWindow::on_buttonSwitchUser_clicked() {
+    ui->textResult->setPlainText("Switch user: not implemented. As a workaround, shift-right-click the executable and click \"Run as different user\".");
+}
+
 // Run the `systeminfo` command on the target machine; print output to the Result pane
 void MainWindow::action_systemInfo() {
     executeToResultPane("systeminfo /s " + compName(), false, true);
