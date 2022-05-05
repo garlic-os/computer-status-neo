@@ -167,9 +167,12 @@ void MainWindow::executeToResultPane(const QString &command, bool remote, bool s
             delete process;
         });
     }
-    QObject::connect(process, &QProcess::readyReadStandardError, this, [=]() {
-        ui->textResult->setPlainText(process->readAllStandardOutput().mid(2));
-    });
+    if (streamStderr) {
+        QObject::connect(process, &QProcess::readyReadStandardError, this, [=]() {
+            qDebug() << "Ready Read Standard Error";
+            ui->textResult->setPlainText(process->readAllStandardOutput().mid(2));
+        });
+    }
 }
 
 void MainWindow::disableButtons() {
