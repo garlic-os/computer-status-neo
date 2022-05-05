@@ -203,9 +203,9 @@ void MainWindow::enableButtons() {
 // accept as an argument, and not necessarily a valid computer name. It's not
 // looking it up in NetDB or anything.
 // Honestly, I just don't want you to type "*" here.
-void MainWindow::on_inputComputer_textChanged() {
+void MainWindow::on_inputComputer_textChanged(const QString &text) {
     static QRegularExpression pattern("\\w");
-    if (compName().contains(pattern)) {  // TODO: Only run when necessary
+    if (text.contains(pattern)) {  // TODO: Only run when necessary
         enableButtons();
     } else {
         disableButtons();

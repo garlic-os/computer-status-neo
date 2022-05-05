@@ -17,7 +17,7 @@ public:
     virtual ~MainWindow();
 
 private slots:
-    void on_inputComputer_textChanged();
+    void on_inputComputer_textChanged(const QString &text);
     void on_inputComputer_returnPressed();
     void on_dropdownActions_currentTextChanged(const QString &text);
     void on_buttonPing_clicked();
