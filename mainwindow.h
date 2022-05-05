@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <string>
+#include <unordered_map>
 #include <QMainWindow>
 #include <QString>
 #include <QTemporaryDir>
