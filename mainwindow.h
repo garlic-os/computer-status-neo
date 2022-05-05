@@ -50,7 +50,6 @@ private:
 
     // Functions accessible from the Actions dropdown menu
     typedef void (MainWindow::*t_memberFunction)(void);
-    t_memberFunction actions[10];
     std::unordered_map<std::string, t_memberFunction> actions;
     void action_systemInfo();
     void action_queryUsers();
