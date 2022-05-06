@@ -33,8 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
         if (!tempDir->isValid()) {
             qDebug() << "Temp directory not valid";
         }
-        psexec = QDir::toNativeSeparators(tempDir->path() + "/psexec.exe");
-        QFile::copy(":/psexec.exe", psexec);
+        psexec = QDir::toNativeSeparators(tempDir->path() + "/psexec64.exe");
+        QFile::copy(":/psexec64.exe", psexec);
 
         // Populate the Actions map.
         // NB: If you change/add any action, you must update all of these things:
