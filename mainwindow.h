@@ -30,6 +30,7 @@ private slots:
     void on_buttonComputerManagement_clicked();
     void on_buttonCDollarAdminShare_clicked();
     void on_buttonNetDB_clicked();
+    void on_buttonLAPS_clicked();
     void on_buttonReverseShell_clicked();
     void on_buttonExecuteAction_clicked();
     void on_buttonSwitchUser_clicked();
@@ -37,7 +38,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QTemporaryDir *tempDir;  // Temporary directory for storing psexec.exe
-    QString psexec;  // Path to unpacked psexec.exe
+    QString psexec;  // Path to unpacked psexec64.exe
+    QString psinfo;  // Path to unpacked psinfo64.exe
 
     void updateLabelRunningAs();
 
@@ -46,7 +48,7 @@ private:
     const static inline t_callback dummy = [](const QProcess*){};
 
     // Helper functions
-    void executeCLI(const QString &command, bool remote=true);
+    void executeToCMD(const QString &command, bool remote=true);
     void executeToResultPane(const QString &command,
                              bool remote=true, bool streamStderr=false,
                              const t_callback& callback=dummy);
@@ -65,11 +67,13 @@ private:
     void action_reactivateWindows();
     void action_getADJoinStatus();
     void action_reinstallOffice365();
-    void action_getInstalledPrinters();
+    void action_listInstalledPrinters();
     void action_installPrinter();
+    void action_abortShutdown();
     void action_shutDown();
     void action_restart();
     void action_sfcDISM();
+    void action_listInstalledSoftware();
     void action_uninstallAppsAnywhere();
     void action_installAppsAnywhere();
 };

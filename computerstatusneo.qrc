@@ -3,5 +3,6 @@
         <file>under-construction-1.gif</file>
         <file>under-construction-2.gif</file>
         <file>psexec64.exe</file>
+        <file>psinfo64.exe</file>
     </qresource>
 </RCC>

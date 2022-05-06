@@ -31,10 +31,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
         // Unpack psexec.exe
         if (!tempDir->isValid()) {
-            qDebug() << "Temp directory not valid";
+            QMessageBox::critical(nullptr, "Failed to start", "Temp directory not valid",
+                                 QMessageBox::Ok, QMessageBox::Ok);
+            delete tempDir;
+            qApp->exit();
         }
         psexec = QDir::toNativeSeparators(tempDir->path() + "/psexec64.exe");
         QFile::copy(":/psexec64.exe", psexec);
+        psinfo = QDir::toNativeSeparators(tempDir->path() + "/psinfo64.exe");
+        QFile::copy(":/psinfo64.exe", psinfo);
 
         // Populate the Actions map.
         // NB: If you change/add any action, you must update all of these things:
@@ -48,11 +53,13 @@ MainWindow::MainWindow(QWidget *parent) :
             { "Reactivate Windows License", &MainWindow::action_reactivateWindows },
             { "Get AD Join Status", &MainWindow::action_getADJoinStatus },
             { "Reinstall Office 365", &MainWindow::action_reinstallOffice365 },
-            { "Get Installed Printers", &MainWindow::action_getInstalledPrinters },
+            { "List Installed Printers", &MainWindow::action_listInstalledPrinters },
             { "Install printer...", &MainWindow::action_installPrinter },
-            { "Shut Down", &MainWindow::action_shutDown },
-            { "Restart", &MainWindow::action_restart },
+            { "Abort Shutdown", &MainWindow::action_abortShutdown },
+            { "Shut Down...", &MainWindow::action_shutDown },
+            { "Restart...", &MainWindow::action_restart },
             { "Run SFC and DISM", &MainWindow::action_sfcDISM },
+            { "List Installed Software", &MainWindow::action_listInstalledSoftware },
             { "Uninstall AppsAnywhere", &MainWindow::action_uninstallAppsAnywhere },
             { "Install AppsAnywhere", &MainWindow::action_installAppsAnywhere }
         };
@@ -105,7 +112,7 @@ void MainWindow::updateLabelRunningAs() {
 }
 
 // Run a remote command in a CMD window
-void MainWindow::executeCLI(const QString &command, bool remote) {
+void MainWindow::executeToCMD(const QString &command, bool remote) {
     auto process = new QProcess(this);
 
     // Show console window (hidden by default)
@@ -164,7 +171,7 @@ void MainWindow::executeToResultPane(const QString &command,
     } else {
         process->start(command);
         QObject::connect(process, pfo, [=]() {
-            ui->textResult->setPlainText(process->readAllStandardOutput().mid(2));
+            ui->textResult->setPlainText(process->readAllStandardOutput());
             qDebug() << process->readAllStandardError();
             setButtonsEnabled(true);
             callback(process);
@@ -215,12 +222,12 @@ void MainWindow::on_buttonPing_clicked() {
 
 // Start a remote desktop session on the target machine
 void MainWindow::on_buttonRemoteDesktop_clicked() {
-    QProcess::startDetached("mstsc.exe /v:" + compName());
+    QProcess::startDetached("mstsc /v:" + compName());
 }
 
 // Offer to start a remote assistance session on the target machine
 void MainWindow::on_buttonRemoteAssistance_clicked() {
-    QProcess::startDetached("msra.exe /offerRA" + compName());
+    QProcess::startDetached("msra /offerRA" + compName());
 }
 
 // Open Computer Management locally, for the target machine
@@ -243,9 +250,17 @@ void MainWindow::on_buttonNetDB_clicked() {
     );
 }
 
-// Run CMD as SYSTEM on the target machine remotely
+// Look the target machine up in Local Administrator Password Tools
+void MainWindow::on_buttonLAPS_clicked() {
+    QDesktopServices::openUrl(
+        "https://laps.mst.edu/auth-cgi-bin/cgiwrap/mstlaps/search.pl?query=" +
+        compName()
+    );
+}
+
+// Open a CMD window as SYSTEM on the target machine
 void MainWindow::on_buttonReverseShell_clicked() {
-    executeCLI("cmd");
+    executeToCMD("cmd");
 }
 
 // Run the function corresponding to (the index of) the currently selected action
@@ -259,11 +274,12 @@ void MainWindow::on_buttonSwitchUser_clicked() {
     ui->textResult->setPlainText("Switch user: not implemented. As a workaround, shift-right-click the executable and click \"Run as different user\".");
 }
 
-// Run the `systeminfo` command on the target machine; print output to the Result pane
+// Run the `systeminfo` command
 void MainWindow::action_systemInfo() {
     executeToResultPane("systeminfo /s " + compName(), false, true);
 }
 
+// See who is logged in
 void MainWindow::action_queryUsers() {
     executeToResultPane("query user /server:" + compName(), false);
 }
@@ -271,22 +287,26 @@ void MainWindow::action_queryUsers() {
 // Good ol' KMS
 void MainWindow::action_reactivateWindows() {
     if (confirm("Are you sure you want to reactivate this computer's Windows license?", compName() + ": Reactivate Windows License"))
-        executeCLI("slmgr /skms umad-kmsdfs-01.umad.umsystem.edu && slmgr /ato");
+        executeToCMD("slmgr /skms umad-kmsdfs-01.umad.umsystem.edu && slmgr /ato");
 }
 
+// See if the computer is on the AD
 void MainWindow::action_getADJoinStatus() {
     executeToResultPane("dsregcmd /status");
 }
 
+// Run the Microsoft Office 365 reinstall script
 void MainWindow::action_reinstallOffice365() {
     if (confirm("Are you sure you want to reinstall Office 365 on this computer?", compName() + ": Reinstall Microsoft Office 365"))
-        executeCLI("R: && cd R:\\software\\appdeploy\\office.365\\x64 && setup.exe /configure configuration-test.xmlcd");
+        executeToCMD("R: && cd R:\\software\\appdeploy\\office.365\\x64 && setup.exe /configure configuration-test.xmlcd");
 }
 
-void MainWindow::action_getInstalledPrinters() {
+// List the printers that are installed on the machine
+void MainWindow::action_listInstalledPrinters() {
     executeToResultPane("powershell -c \"Get-WMIObject Win32_Printer\"");
 }
 
+// Install a printer by name
 void MainWindow::action_installPrinter() {
     bool ok;
     QString printerName = QInputDialog::getText(
@@ -294,27 +314,63 @@ void MainWindow::action_installPrinter() {
         "Enter the name of the printer to install:",
         QLineEdit::Normal, "", &ok, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
     if (ok && !printerName.isEmpty())
-        executeCLI("rundll32 printui.dll PrintUIEntry /c \\\\" + compName() + " /in /n \\\\winprint.mst.edu\\" + printerName, false);
+        executeToCMD("rundll32 printui.dll PrintUIEntry /c \\\\" + compName() + " /in /n \\\\winprint.mst.edu\\" + printerName, false);
+}
+
+void MainWindow::action_abortShutdown() {
+    executeToResultPane("shutdown /a /m \\\\" + compName(), false);
 }
 
 void MainWindow::action_shutDown() {
-    if (confirm("Are you sure you want to shut down this computer?", compName() + ": Send shutdown signal"))
-        executeCLI("shutdown -s -t 0");
+    bool ok;
+    int timeoutSeconds = QInputDialog::getInt(
+        this, compName() + ": Send shutdown signal",
+        "Enter the timeout period (in seconds) before shutdown:",
+        0, 0, 2147483647, 1, &ok);
+    if (ok) {
+        executeToResultPane("shutdown /s /t " + QString::number(timeoutSeconds) + " /m \\\\" + compName(), false);
+    }
 }
 
 void MainWindow::action_restart() {
-    if (confirm("Are you sure you want to restart this computer?", compName() + ": Send restart signal"))
-        executeCLI("shutdown -r -t 0");
+    bool ok;
+    int timeoutSeconds = QInputDialog::getInt(
+        this, compName() + ": Send restart signal",
+        "Enter the timeout period (in seconds) before restart:",
+        0, 0, 2147483647, 1, &ok);
+    if (ok) {
+        executeToResultPane("shutdown /r /t " + QString::number(timeoutSeconds) + " /m \\\\" + compName(), false);
+    }
 }
 
 void MainWindow::action_sfcDISM() {
-    executeCLI("cmd /c \"sfc /scannow && dism /online /cleanup-image /restorehealth\"");
+    executeToCMD("cmd /c \"sfc /scannow && dism /online /cleanup-image /restorehealth\"");
 }
 
+void MainWindow::action_listInstalledSoftware() {
+    executeToResultPane(psinfo + " /accepteula /nobanner /s applications \\\\" + compName(), false);
+}
+
+// Run the AppsAnywhere uninstall script, or the "force" version if
+// the Force checkbox is checked
 void MainWindow::action_uninstallAppsAnywhere() {
-    ui->textResult->setPlainText("Uninstall AA: not implemented");
+    if (ui->checkboxForceAction->checkState() == Qt::Checked) {
+        // Force
+        executeToCMD("R:\\software\\itwindist\\appsanywheredeploy.1_5_0\\force_uninstall.bat");
+    } else {
+        // Not force
+        executeToCMD("/c perl R:\\software\\itwindist\\applications\\SCCM\\appsanywheredeploy.1_5_0\\remove.pl");
+    }
 }
 
+// Run the AppsAnywhere install script, and don't check if it might already
+// be installed if the Force checkbox is checked
 void MainWindow::action_installAppsAnywhere() {
-    ui->textResult->setPlainText("Install AA: not implemented");
+    if (ui->checkboxForceAction->checkState() == Qt::Checked) {
+        // Force
+        executeToCMD("/c perl R:\\software\\itwindist\\applications\\SCCM\\appsanywheredeploy.1_5_0\\update.pl --no-install-check");
+    } else {
+        // Not force
+        executeToCMD("/c perl R:\\software\\itwindist\\applications\\SCCM\\appsanywheredeploy.1_5_0\\update.pl");
+    }
 }
