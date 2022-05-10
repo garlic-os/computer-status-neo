@@ -18,7 +18,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-// I use this ugly thing everywhere so it's going in its own variable.
+// I hate seeing this long ugly thing everywhere so it's going in its own variable.
 // "Process Finished Overload"
 const static auto pfo = QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished);
 
