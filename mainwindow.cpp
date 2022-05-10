@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
     tempDir(new QTemporaryDir) {
         updateLabelRunningAs();
 
-        // Unpack psexec.exe
+        // Unpack the bundled executables and scripts
         if (!tempDir->isValid()) {
             QMessageBox::critical(nullptr, "Failed to start", "Temp directory not valid",
                                  QMessageBox::Ok, QMessageBox::Ok);
