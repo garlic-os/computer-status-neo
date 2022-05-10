@@ -286,8 +286,8 @@ void MainWindow::action_queryUsers() {
 
 // Good ol' KMS
 void MainWindow::action_reactivateWindows() {
-    if (confirm("Are you sure you want to reactivate this computer's Windows license?", compName() + ": Reactivate Windows License"))
-        executeToCMD("slmgr /skms umad-kmsdfs-01.umad.umsystem.edu && slmgr /ato");
+    if (!confirm("Are you sure you want to reactivate this computer's Windows license?", compName() + ": Reactivate Windows License")) return;
+    executeToCMD("slmgr /skms umad-kmsdfs-01.umad.umsystem.edu && slmgr /ato");
 }
 
 // See if the computer is on the AD
@@ -297,8 +297,8 @@ void MainWindow::action_getADJoinStatus() {
 
 // Run the Microsoft Office 365 reinstall script
 void MainWindow::action_reinstallOffice365() {
-    if (confirm("Are you sure you want to reinstall Office 365 on this computer?", compName() + ": Reinstall Microsoft Office 365"))
-        executeToCMD("R: && cd R:\\software\\appdeploy\\office.365\\x64 && setup.exe /configure configuration-test.xmlcd");
+    if (!confirm("Are you sure you want to reinstall Office 365 on this computer?", compName() + ": Reinstall Microsoft Office 365")) return;
+    executeToCMD("R: && cd R:\\software\\appdeploy\\office.365\\x64 && setup.exe /configure configuration-test.xmlcd");
 }
 
 // List the printers that are installed on the machine
@@ -313,8 +313,9 @@ void MainWindow::action_installPrinter() {
         this, compName() + ": Install printer",
         "Enter the name of the printer to install:",
         QLineEdit::Normal, "", &ok, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-    if (ok && !printerName.isEmpty())
+    if (ok && !printerName.isEmpty()) {
         executeToCMD("rundll32 printui.dll PrintUIEntry /c \\\\" + compName() + " /in /n \\\\winprint.mst.edu\\" + printerName, false);
+    }
 }
 
 void MainWindow::action_abortShutdown() {
