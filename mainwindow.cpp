@@ -355,6 +355,7 @@ void MainWindow::action_listInstalledSoftware() {
 // Run the AppsAnywhere uninstall script, or the "force" version if
 // the Force checkbox is checked
 void MainWindow::action_uninstallAppsAnywhere() {
+    if (!confirm("Are you sure to want to uninstall AppsAnywhere?", compName() + ": Uninstall AppsAnywhere")) return;
     if (ui->checkboxForceAction->checkState() == Qt::Checked) {
         // Force
         executeToCMD("R:\\software\\itwindist\\appsanywheredeploy.1_5_0\\force_uninstall.bat");
@@ -367,6 +368,7 @@ void MainWindow::action_uninstallAppsAnywhere() {
 // Run the AppsAnywhere install script, and don't check if it might already
 // be installed if the Force checkbox is checked
 void MainWindow::action_installAppsAnywhere() {
+    if (!confirm("Are you sure to want to install AppsAnywhere?", compName() + ": Install AppsAnywhere")) return;
     if (ui->checkboxForceAction->checkState() == Qt::Checked) {
         // Force
         executeToCMD("/c perl R:\\software\\itwindist\\applications\\SCCM\\appsanywheredeploy.1_5_0\\update.pl --no-install-check");
