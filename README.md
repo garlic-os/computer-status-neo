@@ -14,18 +14,21 @@ WMIC is deprecated as of Windows 10 21H1. With its removal coming at an unknown 
 - Reverse Shell
 - Reactivate Windows license
 - Reinstall Office 365
-- Get Azure AD Join status
-- Enumerate installed printers
+- Get Azure AD join status
+- List installed printers
 - Install a printer by name
 - SFC & DISM
+- Get serial number
+- Get BIOS version
+- List network drives
+- List physical drives ("HDD or SSD?")
+- List installed software
 
 ## Missing features
 - Lab tab
 - Reports tab
 - Run as different user
 - Documentation
-- Trigger SCCM
-- Get serial number
 
 ## Roadmap
 See what's in progress here on this repo's Project page: https://github.com/the-garlic-os/computer-status-neo/projects/1
