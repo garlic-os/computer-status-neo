@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
         // Populate the Actions map.
         // NB: If you change/add any action, you must update all of these things:
-        //     1. Its entry to this map
+        //     1. Its entry in this map
         //     2. Its function signature in mainwindow.h
         //     3. Its function implementation here in mainwindow.cpp
         //     4. Its entry in the UI's Actions dropdown menu (or "Combobox", whatever, QT)
@@ -64,8 +64,8 @@ MainWindow::MainWindow(QWidget *parent) :
         // Disable unused help button in dialog windows
         QApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
 
-        ui->setupUi(this);
-        ui->inputComputer->setFocus();
+        ui->setupUi(this);  // Boilerplate
+        ui->inputComputer->setFocus();  // Autofocus query box
 
         // Set default computer query to self
         QProcess process;
@@ -193,7 +193,6 @@ void MainWindow::setButtonsEnabled(bool enabled) {
 // This really just means it's a string that the commands it's passed to will
 // accept as an argument, and not necessarily a valid computer name. It's not
 // looking it up in NetDB or anything.
-// Honestly, I just don't want you to type "*" here.
 void MainWindow::on_inputComputer_textChanged(const QString &text) {
     static QRegularExpression pattern("\\w");
     if (text.contains(pattern)) {  // TODO: Only run when necessary
