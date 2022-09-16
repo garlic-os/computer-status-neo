@@ -79,6 +79,13 @@ MainWindow::MainWindow(QWidget *parent) :
             qDebug() << "System is in dark mode.";
             loadStylesheet(":qdarkstyle/style.qss");
         }
+
+        // For development: hot reload stylesheet from FS
+//        auto qssPath = "S:\\Documents\\Qt\\ComputerStatusNeo\\qdarkstyle\\style-new.qss";
+//        loadStylesheet(qssPath);
+//        auto *qssWatcher = new QFileSystemWatcher();
+//        qssWatcher->addPath(qssPath);
+//        QFileSystemWatcher::connect(qssWatcher, &QFileSystemWatcher::fileChanged, &loadStylesheet);
 }
 
 MainWindow::~MainWindow() {

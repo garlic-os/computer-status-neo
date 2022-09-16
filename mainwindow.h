@@ -9,6 +9,9 @@
 #include <QString>
 #include <QTemporaryDir>
 
+// DEBUG
+//#include <QFileSystemWatcher>
+
 namespace Ui {
     class MainWindow;
 }
@@ -78,6 +81,9 @@ private:
     void action_listPhysicalDrives();
     void action_getSerialNumber();
     void action_getBIOSVersion();
+
+    // DEBUG
+//    QFileSystemWatcher *qssWatcher;
 };
 
 #endif // MAINWINDOW_H
