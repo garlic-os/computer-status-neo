@@ -47,9 +47,9 @@ private:
     const static inline t_callback dummy = [](const QProcess*){};
 
     // Helper functions
-    void executeToCMD(const QString &command, bool remote=true);
-    void executeToResultPane(const QString &command,
-                             bool remote=true, bool streamStderr=false,
+    void executeToNewWindow(const QString &command, bool remote=false,
+                            const t_callback& callback=dummy);
+    void executeToResultPane(const QString &command, bool remote=false,
                              const t_callback& callback=dummy);
     inline const QString compName() const;
     bool confirm(const QString &message, const QString &title) const;
