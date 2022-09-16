@@ -57,20 +57,24 @@ MainWindow::MainWindow(QWidget *parent) :
         //     3. Its function implementation here in mainwindow.cpp
         //     4. Its entry in the UI's Actions dropdown menu (or "Combobox", whatever, QT)
         actions = {
-            { "System Info", &MainWindow::action_systemInfo },
-            { "Query Users", &MainWindow::action_queryUsers },
-            { "Reactivate Windows License", &MainWindow::action_reactivateWindows },
-            { "Get AD Join Status", &MainWindow::action_getADJoinStatus },
+            { "System info", &MainWindow::action_systemInfo },
+            { "Query users", &MainWindow::action_queryUsers },
+            { "Reactivate Windows license", &MainWindow::action_reactivateWindows },
+            { "Get AD join status", &MainWindow::action_getADJoinStatus },
             { "Reinstall Office 365", &MainWindow::action_reinstallOffice365 },
-            { "List Installed Printers", &MainWindow::action_listInstalledPrinters },
+            { "List installed printers", &MainWindow::action_listInstalledPrinters },
             { "Install printer...", &MainWindow::action_installPrinter },
-            { "Abort Shutdown", &MainWindow::action_abortShutdown },
-            { "Shut Down...", &MainWindow::action_shutDown },
+            { "Abort shutdown", &MainWindow::action_abortShutdown },
+            { "Shut down...", &MainWindow::action_shutDown },
             { "Restart...", &MainWindow::action_restart },
             { "Run SFC and DISM", &MainWindow::action_sfcDISM },
-            { "List Installed Software", &MainWindow::action_listInstalledSoftware },
-            { "Uninstall AppsAnywhere", &MainWindow::action_uninstallAppsAnywhere },
-            { "Install AppsAnywhere", &MainWindow::action_installAppsAnywhere }
+            { "List installed software", &MainWindow::action_listInstalledSoftware },
+//            { "Uninstall AppsAnywhere", &MainWindow::action_uninstallAppsAnywhere },
+//            { "Install AppsAnywhere", &MainWindow::action_installAppsAnywhere },
+            { "List network drives", &MainWindow::action_listNetworkDrives },
+            { "List physical drives", &MainWindow::action_listPhysicalDrives },
+            { "Get serial number", &MainWindow::action_getSerialNumber },
+            { "Get BIOS version", &MainWindow::action_getBIOSVersion }
         };
 
         // Disable unused help button in dialog windows
