@@ -1,4 +1,7 @@
 #include <QDebug>
+
+#include <QClipboard>
+#include <QByteArray>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
