@@ -34,6 +34,8 @@ private slots:
     void on_buttonReverseShell_clicked();
     void on_buttonExecuteAction_clicked();
     void on_buttonSwitchUser_clicked();
+    void on_buttonCopy_clicked();
+    void on_buttonClear_clicked();
 
 private:
     Ui::MainWindow *ui;
