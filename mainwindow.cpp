@@ -363,6 +363,8 @@ void MainWindow::action_uninstallAppsAnywhere() {
         // Not force
         executeToCMD("/c perl R:\\software\\itwindist\\applications\\SCCM\\appsanywheredeploy.1_5_0\\remove.pl");
     }
+void MainWindow::action_listNetworkDrives() {
+    executeToResultPane("Get-WmiObject Win32_MappedLogicalDisk -ComputerName " + compName() + " | Select PSComputerName, Name, ProviderName");
 }
 
 // Run the AppsAnywhere install script, and don't check if it might already
@@ -376,4 +378,14 @@ void MainWindow::action_installAppsAnywhere() {
         // Not force
         executeToCMD("/c perl R:\\software\\itwindist\\applications\\SCCM\\appsanywheredeploy.1_5_0\\update.pl");
     }
+void MainWindow::action_listPhysicalDrives() {
+    executeToResultPane("Get-WmiObject -Class MSFT_PhysicalDisk -ComputerName " + compName() + " -Namespace root\\Microsoft\\Windows\\Storage | Select FriendlyName");
+}
+
+void MainWindow::action_getSerialNumber() {
+    executeToResultPane("Get-WmiObject win32_bios | Select SerialNumber");
+}
+
+void MainWindow::action_getBIOSVersion() {
+    executeToResultPane("Get-WmiObject win32_bios | Select Name");
 }
