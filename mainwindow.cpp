@@ -305,7 +305,7 @@ void MainWindow::action_shutDown() {
         "Enter the timeout period (in seconds) before shutdown:",
         0, 0, 2147483647, 1, &ok);
     if (ok) {
-        executeToResultPane("shutdown /s /t " + QString::number(timeoutSeconds) + " /m \\\\" + compName(), false);
+        executeToResultPane("shutdown /s /t " + QString::number(timeoutSeconds) + " /m \\\\" + compName());
     }
 }
 
@@ -316,16 +316,16 @@ void MainWindow::action_restart() {
         "Enter the timeout period (in seconds) before restart:",
         0, 0, 2147483647, 1, &ok);
     if (ok) {
-        executeToResultPane("shutdown /r /t " + QString::number(timeoutSeconds) + " /m \\\\" + compName(), false);
+        executeToResultPane("shutdown /r /t " + QString::number(timeoutSeconds) + " /m \\\\" + compName());
     }
 }
 
 void MainWindow::action_sfcDISM() {
-    executeToCMD("cmd /c \"sfc /scannow && dism /online /cleanup-image /restorehealth\"");
+    executeToNewWindow("sfc /scannow; dism /online /cleanup-image /restorehealth", true);
 }
 
 void MainWindow::action_listInstalledSoftware() {
-    executeToResultPane(psinfo + " /accepteula /nobanner /s applications \\\\" + compName(), false);
+    executeToResultPane("Get-WmiObject Win32_Product -ComputerName " + compName() + " | Select Name");
 }
 
 // Run the AppsAnywhere uninstall script
