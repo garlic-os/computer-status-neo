@@ -192,11 +192,6 @@ void MainWindow::on_inputComputer_returnPressed() {
     on_buttonExecuteAction_clicked();
 }
 
-void MainWindow::on_dropdownActions_currentTextChanged(const QString &text) {
-    bool actionIsForceable = text == "Uninstall AppsAnywhere" || text == "Install AppsAnywhere";
-    ui->checkboxForceAction->setCheckable(actionIsForceable);
-}
-
 void MainWindow::on_buttonPing_clicked() {
     executeToResultPane("ping /n 1 " + compName());
 }

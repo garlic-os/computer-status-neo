@@ -23,7 +23,6 @@ public:
 private slots:
     void on_inputComputer_textChanged(const QString &text);
     void on_inputComputer_returnPressed();
-    void on_dropdownActions_currentTextChanged(const QString &text);
     void on_buttonPing_clicked();
     void on_buttonRemoteDesktop_clicked();
     void on_buttonRemoteAssistance_clicked();
