@@ -25,21 +25,8 @@ const static auto pfo = QOverload<int, QProcess::ExitStatus>::of(&QProcess::fini
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    tempDir(new QTemporaryDir) {
+    ui(new Ui::MainWindow) {
         updateLabelRunningAs();
-
-        // Unpack the bundled executables and scripts
-        if (!tempDir->isValid()) {
-            QMessageBox::critical(nullptr, "Failed to start", "Temp directory not valid",
-                                 QMessageBox::Ok, QMessageBox::Ok);
-            delete tempDir;
-            qApp->exit();
-        }
-        psexec = QDir::toNativeSeparators(tempDir->path() + "/psexec64.exe");
-        QFile::copy(":/psexec64.exe", psexec);
-        psinfo = QDir::toNativeSeparators(tempDir->path() + "/psinfo64.exe");
-        QFile::copy(":/psinfo64.exe", psinfo);
 
         // Populate the Actions map.
         // NB: If you change/add any action, you must update all of these things:
@@ -89,7 +76,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow() {
     delete ui;
-    delete tempDir;
 }
 
 inline const QString MainWindow::compName() const {
@@ -111,8 +97,9 @@ void MainWindow::updateLabelRunningAs() {
     });
 }
 
-// Run a remote command in a CMD window
-void MainWindow::executeToCMD(const QString &command, bool remote) {
+// Run a remote command and show the output in a local Powershell window.
+void MainWindow::executeToNewWindow(const QString &command, bool remote,
+                                    const t_callback& callback) {
     auto process = new QProcess(this);
 
     // Show console window (hidden by default)
@@ -121,69 +108,63 @@ void MainWindow::executeToCMD(const QString &command, bool remote) {
         args->startupInfo->dwFlags &=~ static_cast<unsigned long>(STARTF_USESTDHANDLES);
     });
 
-    if (remote) {
-        // Run the command on the target computer through PsExec.
-        // Command is wrapped in a CMD /k window so the output will stay when the command is done.
-        process->start("cmd.exe /k \"" + psexec + " /accepteula /s /n 10 \\\\" + compName() + " " + command + "\"");
-    } else {
-        process->start(command);
-    }
+    auto wrapped_command = remote ?
+                "powershell -NoExit Invoke-Command -ComputerName " + compName() + " -ScriptBlock { " + command + " }" :
+                "powershell -NoExit " + command;
+    qDebug() << "Running command: " << wrapped_command;
+    process->start(wrapped_command);
 
-    // Delete process object when the CMD window closes
+    // Delete process object when the PS window closes
     QObject::connect(process, pfo, [=]() {
+        qDebug() << processErrorDump(process);
+        callback(process);
         delete process;
+    });
+
+    QProcess::connect(process, &QProcess::errorOccurred, [=]() {
+        ui->textResult->setPlainText(
+            "Error occurred while running the command\n" +
+            processErrorDump(process)
+        );
     });
 }
 
-// Run a remote command and print its output to the Result pane
-void MainWindow::executeToResultPane(const QString &command,
-                                     bool remote, bool streamStderr,
+
+// Run a remote command and print its output to the Result pane.
+void MainWindow::executeToResultPane(const QString &command, bool remote,
                                      const t_callback& callback) {
     setButtonsEnabled(false);
     ui->textResult->setPlainText("Connecting...");
     auto process = new QProcess(this);
+    auto wrapped_command = remote ?
+                "powershell Invoke-Command -ComputerName " + compName() + " -ScriptBlock { " + command + " }" :
+                "powershell " + command;
+    qDebug() << "Running command: " << wrapped_command;
+    process->start(wrapped_command);
 
-    if (remote) {
-        // PsExec's remote process's output is only readable by wrapping it in CMD and
-        // redirecting the output to a file on the remote machine.
-        // It's a long story.
-        QString logPath = "\\\\" + compName() + "\\c$\\it-comp-stat.out";
-        process->start(psexec + " /accepteula /n 10 \\\\" + compName() + " cmd.exe /c \"" + command + "\" > C:\\it-comp-stat.out");
+    // When process finishes
+    QObject::connect(process, pfo, [=]() {
+        QByteArray text = process->readAllStandardOutput();
+        if (text.length() == 0) {
+            text = process->readAllStandardError();
+        }
+//        qDebug() << text;
+        while (text.startsWith("\r") || text.startsWith("\n")) {  // Remove leading CRs and LFs
+//            qDebug() << "Leading CR/LF detected";
+            text = text.mid(1);
+        }
+        if (text.length() == 0) {
+            text = "(No output.)";
+        }
+        ui->textResult->setPlainText(text);
+        setButtonsEnabled(true);
+        callback(process);
+        delete process;
+    });
 
-        // When process finishes
-        QObject::connect(process, pfo, [=](int returnCode) {
-            switch (returnCode) {
-                case 0: {
-                    QFile logFile(logPath);
-                    logFile.open(QFile::ReadOnly);
-                    ui->textResult->setPlainText(logFile.readAll().mid(2));
-                    QFile::remove(logPath);
-                    break;
-                } case 1460: {
-                    ui->textResult->setPlainText("Connection timed out.");
-                    break;
-                }
-            }
-            setButtonsEnabled(true);
-            callback(process);
-            delete process;
-        });
-    } else {
-        process->start(command);
-        QObject::connect(process, pfo, [=]() {
-            ui->textResult->setPlainText(process->readAllStandardOutput());
-            qDebug() << process->readAllStandardError();
-            setButtonsEnabled(true);
-            callback(process);
-            delete process;
-        });
-    }
-    if (streamStderr) {
-        QObject::connect(process, &QProcess::readyReadStandardError, this, [=]() {
-            qDebug() << "Ready Read Standard Error";
-            ui->textResult->setPlainText(process->readAllStandardOutput().mid(2));
-        });
-    }
+    QProcess::connect(process, &QProcess::errorOccurred, [=]() {
+        ui->textResult->setPlainText(processErrorDump(process));
+    });
 }
 
 void MainWindow::setButtonsEnabled(bool enabled) {
@@ -217,7 +198,7 @@ void MainWindow::on_dropdownActions_currentTextChanged(const QString &text) {
 }
 
 void MainWindow::on_buttonPing_clicked() {
-    executeToResultPane("ping /n 1 " + compName(), false);
+    executeToResultPane("ping /n 1 " + compName());
 }
 
 // Start a remote desktop session on the target machine
@@ -227,12 +208,12 @@ void MainWindow::on_buttonRemoteDesktop_clicked() {
 
 // Offer to start a remote assistance session on the target machine
 void MainWindow::on_buttonRemoteAssistance_clicked() {
-    QProcess::startDetached("msra /offerRA" + compName());
+    executeToResultPane("msra /offerRA " + compName());
 }
 
 // Open Computer Management locally, for the target machine
 void MainWindow::on_buttonComputerManagement_clicked() {
-    QProcess::startDetached("compmgmt.msc /computer=" + compName());
+    executeToResultPane("compmgmt.msc /computer=" + compName());
 }
 
 // Open the default c$ Admin Share of the target machine in Explorer
@@ -258,9 +239,9 @@ void MainWindow::on_buttonLAPS_clicked() {
     );
 }
 
-// Open a CMD window as SYSTEM on the target machine
+// Enter a Powershell session on the target machine
 void MainWindow::on_buttonReverseShell_clicked() {
-    executeToCMD("cmd");
+    executeToNewWindow("Enter-PSSession –ComputerName " + compName());
 }
 
 // Run the function corresponding to (the index of) the currently selected action
@@ -276,34 +257,34 @@ void MainWindow::on_buttonSwitchUser_clicked() {
 
 // Run the `systeminfo` command
 void MainWindow::action_systemInfo() {
-    executeToResultPane("systeminfo /s " + compName(), false, true);
+    executeToResultPane("systeminfo /s " + compName());
 }
 
 // See who is logged in
 void MainWindow::action_queryUsers() {
-    executeToResultPane("query user /server:" + compName(), false);
+    executeToResultPane("query user /server:" + compName());
 }
 
 // Good ol' KMS
 void MainWindow::action_reactivateWindows() {
     if (!confirm("Are you sure you want to reactivate this computer's Windows license?", compName() + ": Reactivate Windows License")) return;
-    executeToCMD("slmgr /skms umad-kmsdfs-01.umad.umsystem.edu && slmgr /ato");
+    executeToNewWindow("slmgr " + compName() + " /skms umad-kmsdfs-01.umad.umsystem.edu; slmgr " + compName() + " /ato");
 }
 
 // See if the computer is on the AD
 void MainWindow::action_getADJoinStatus() {
-    executeToResultPane("dsregcmd /status");
+    executeToResultPane("dsregcmd /status", true);
 }
 
 // Run the Microsoft Office 365 reinstall script
 void MainWindow::action_reinstallOffice365() {
     if (!confirm("Are you sure you want to reinstall Office 365 on this computer?", compName() + ": Reinstall Microsoft Office 365")) return;
-    executeToCMD("R: && cd R:\\software\\appdeploy\\office.365\\x64 && setup.exe /configure configuration-test.xmlcd");
+    executeToNewWindow("pushd \\\\minerfiles.mst.edu\\dfs\\software\\appdeploy\\office.365\\x64; setup.exe /configure configuration-test.xmlcd", true);
 }
 
 // List the printers that are installed on the machine
 void MainWindow::action_listInstalledPrinters() {
-    executeToResultPane("powershell -c \"Get-WMIObject Win32_Printer\"");
+    executeToResultPane("Get-WMIObject Win32_Printer -ComputerName " + compName() + " | Select Name, Location");
 }
 
 // Install a printer by name
@@ -314,12 +295,12 @@ void MainWindow::action_installPrinter() {
         "Enter the name of the printer to install:",
         QLineEdit::Normal, "", &ok, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
     if (ok && !printerName.isEmpty()) {
-        executeToCMD("rundll32 printui.dll PrintUIEntry /c \\\\" + compName() + " /in /n \\\\winprint.mst.edu\\" + printerName, false);
+        executeToNewWindow("rundll32 printui.dll,PrintUIEntry /c \\\\" + compName() + " /in /n \\\\winprint.mst.edu\\" + printerName);
     }
 }
 
 void MainWindow::action_abortShutdown() {
-    executeToResultPane("shutdown /a /m \\\\" + compName(), false);
+    executeToResultPane("shutdown /a /m \\\\" + compName());
 }
 
 void MainWindow::action_shutDown() {

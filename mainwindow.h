@@ -39,9 +39,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QTemporaryDir *tempDir;  // Temporary directory for storing psexec.exe
-    QString psexec;  // Path to unpacked psexec64.exe
-    QString psinfo;  // Path to unpacked psinfo64.exe
 
     void updateLabelRunningAs();
 
