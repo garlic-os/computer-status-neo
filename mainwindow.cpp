@@ -23,6 +23,16 @@
 const static auto pfo = QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished);
 
 
+void loadStylesheet(const QString &path) {
+    qDebug() << "Loading stylesheet...";
+    QFile themeFile(path);
+    themeFile.open(QFile::ReadOnly | QFile::Text);
+    QTextStream themeFileStream(&themeFile);
+    qApp->setStyleSheet(themeFileStream.readAll());
+    qDebug() << "Stylesheet successfully loaded.";
+}
+
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow) {
@@ -63,18 +73,16 @@ MainWindow::MainWindow(QWidget *parent) :
         process.waitForFinished();
         ui->inputComputer->setText(process.readAllStandardOutput().chopped(2).toLower());
 
-        // Set theme
-        QString themeName;
+        // Load dark theme if system is in dark mode
         QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", QSettings::NativeFormat);
         if (settings.value("AppsUseLightTheme", 1).toInt() == 0) {
-            QFile f(":qdarkstyle/style.qss");
-            f.open(QFile::ReadOnly | QFile::Text);
-            QTextStream ts(&f);
-            qApp->setStyleSheet(ts.readAll());
+            qDebug() << "System is in dark mode.";
+            loadStylesheet(":qdarkstyle/style.qss");
         }
 }
 
 MainWindow::~MainWindow() {
+//    delete qssWatcher;
     delete ui;
 }
 
