@@ -352,32 +352,24 @@ void MainWindow::action_listInstalledSoftware() {
     executeToResultPane(psinfo + " /accepteula /nobanner /s applications \\\\" + compName(), false);
 }
 
-// Run the AppsAnywhere uninstall script, or the "force" version if
-// the Force checkbox is checked
-void MainWindow::action_uninstallAppsAnywhere() {
-    if (!confirm("Are you sure to want to uninstall AppsAnywhere?", compName() + ": Uninstall AppsAnywhere")) return;
-    if (ui->checkboxForceAction->checkState() == Qt::Checked) {
-        // Force
-        executeToCMD("R:\\software\\itwindist\\appsanywheredeploy.1_5_0\\force_uninstall.bat");
-    } else {
-        // Not force
-        executeToCMD("/c perl R:\\software\\itwindist\\applications\\SCCM\\appsanywheredeploy.1_5_0\\remove.pl");
-    }
+// Run the AppsAnywhere uninstall script
+//void MainWindow::action_uninstallAppsAnywhere() {
+//    if (!confirm("Are you sure to want to uninstall AppsAnywhere?", compName() + ": Uninstall AppsAnywhere")) return;
+//    executeToNewWindow("\\\\minerfiles.mst.edu\\dfs\\software\\itwindist\\sccm\\Packages\\AppsAnywhere.1_6_0\\Uninstall.cmd", true, "/i");
+//}
+
+// Run the AppsAnywhere install script
+//void MainWindow::action_installAppsAnywhere() {
+//    if (!confirm("Are you sure to want to install AppsAnywhere?", compName() + ": Install AppsAnywhere")) return;
+//    QProcess::startDetached("powershell -c \"Enable-WSManCredSSP -Role Client -DelegateComputer" + compName() + "\"");  // TODO: Race condition. Wait for this to finish before continuing
+//    executeToNewWindow("\\\\minerfiles.mst.edu\\dfs\\software\\itwindist\\sccm\\Packages\\AppsAnywhere.1_6_0\\Install.cmd", true, "/c");
+//    // https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/solving-double-hop-remoting-with-credssp
+//}
+
 void MainWindow::action_listNetworkDrives() {
     executeToResultPane("Get-WmiObject Win32_MappedLogicalDisk -ComputerName " + compName() + " | Select PSComputerName, Name, ProviderName");
 }
 
-// Run the AppsAnywhere install script, and don't check if it might already
-// be installed if the Force checkbox is checked
-void MainWindow::action_installAppsAnywhere() {
-    if (!confirm("Are you sure to want to install AppsAnywhere?", compName() + ": Install AppsAnywhere")) return;
-    if (ui->checkboxForceAction->checkState() == Qt::Checked) {
-        // Force
-        executeToCMD("/c perl R:\\software\\itwindist\\applications\\SCCM\\appsanywheredeploy.1_5_0\\update.pl --no-install-check");
-    } else {
-        // Not force
-        executeToCMD("/c perl R:\\software\\itwindist\\applications\\SCCM\\appsanywheredeploy.1_5_0\\update.pl");
-    }
 void MainWindow::action_listPhysicalDrives() {
     executeToResultPane("Get-WmiObject -Class MSFT_PhysicalDisk -ComputerName " + compName() + " -Namespace root\\Microsoft\\Windows\\Storage | Select FriendlyName");
 }

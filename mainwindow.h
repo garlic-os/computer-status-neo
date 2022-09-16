@@ -76,8 +76,8 @@ private:
     void action_restart();
     void action_sfcDISM();
     void action_listInstalledSoftware();
-    void action_uninstallAppsAnywhere();
-    void action_installAppsAnywhere();
+//    void action_uninstallAppsAnywhere();
+//    void action_installAppsAnywhere();
     void action_listNetworkDrives();
     void action_listPhysicalDrives();
     void action_getSerialNumber();
