@@ -1,3 +1,8 @@
+/**
+ * Computer Status Neo
+ * https://github.com/the-garlic-os/computer-status-neo
+ */
+
 #include <QDebug>
 
 #include <QClipboard>
