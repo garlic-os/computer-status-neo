@@ -262,7 +262,10 @@ void MainWindow::on_buttonExecuteAction_clicked() {
 }
 
 void MainWindow::on_buttonSwitchUser_clicked() {
-    ui->textResult->setPlainText("Switch user: not implemented. As a workaround, shift-right-click the executable and click \"Run as different user\".");
+    ui->textResult->setPlainText("Switch user: not implemented. As a workaround, shift-right-click Computer Status's executable and click \"Run as different user\".");
+}
+
+
 void MainWindow::on_buttonCopy_clicked() {
     static QClipboard *clipboard = QGuiApplication::clipboard();
     clipboard->setText(ui->textResult->toPlainText());
