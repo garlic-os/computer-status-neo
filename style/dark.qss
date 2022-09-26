@@ -1,0 +1,1111 @@
+/* ---------------------------------------------------------------------------
+
+    A fork of QDarkStyle made to emulate the appearance of win32 applications
+    on Windows 11 plus the colors from Chromium's `color-scheme: dark`.
+
+    Qt stylesheet documentation:
+      - https://doc.qt.io/archives/qt-4.8/stylesheet-reference.html#list-of-properties
+      - https://doc.qt.io/qt-5/stylesheet.html
+      - https://doc.qt.io/qt-5/stylesheet-reference.html
+      - https://doc.qt.io/qt-5/stylesheet-examples.html
+
+--------------------------------------------------------------------------- */
+/* QWidget ----------------------------------------------------------------
+
+--------------------------------------------------------------------------- */
+QWidget {
+  background-color: #202020;
+  color: #ffffff;
+  selection-background-color: #145c95;
+  selection-color: #ffffff;
+  font-size: 12px;
+  font-family: "Segoe UI";
+}
+
+QWidget:disabled {
+  background-color: #202020;
+  color: #737373;
+  selection-background-color: #26486b;
+  selection-color: #737373;
+}
+
+QWidget::item:selected {
+  background-color: #346792;
+}
+
+QWidget::item:hover:!selected {
+  background-color: #1a72bb;
+}
+
+/* QMainWindow ------------------------------------------------------------
+
+  This adjusts the splitter in the dock widget, not qsplitter
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qmainwindow
+
+  --------------------------------------------------------------------------- */
+QMainWindow::separator {
+  background-color: #6B6B6B;
+}
+
+QMainWindow::separator:hover {
+  background-color: #616161;
+}
+
+
+/* QToolTip ---------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtooltip
+
+  --------------------------------------------------------------------------- */
+QToolTip {
+  background-color: #346792;
+  color: #ffffff;
+}
+
+/* QStatusBar -------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qstatusbar
+
+  --------------------------------------------------------------------------- */
+QStatusBar {
+  background: #6B6B6B;
+}
+
+QStatusBar QToolTip {
+  background-color: #1a72bb;
+  color: #202020;
+  /* Reducing transparency to read better */
+  opacity: 230;
+}
+
+QStatusBar QLabel {
+  background: transparent;
+}
+
+/* QCheckBox --------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qcheckbox
+
+  --------------------------------------------------------------------------- */
+QCheckBox {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QCheckBox QWidget:disabled {
+  background-color: #202020;
+  color: #737373;
+}
+
+QCheckbox::indicator:checked {
+  background-image: url(":/icon/dark/checkmark.svg");
+  background-size: contain;
+  background-position: center;
+}
+
+QCheckBox::indicator {
+  border-width: 1px;
+  border-style: solid;
+  background-color: #3b3b3b;
+}
+
+QCheckBox::indicator:unchecked {
+  border-color: #858585;
+}
+
+QCheckBox::indicator:unchecked:!disabled:hover,
+QCheckBox::indicator:unchecked:!disabled:focus {
+  border-color: #acacac;
+}
+
+QCheckBox:disabled::indicator:unchecked,
+QCheckBox:disabled::indicator:unchecked:hover,
+QCheckBox:disabled::indicator:unchecked:focus {
+  border-color: #626262;
+}
+
+QCheckBox::indicator:unchecked:pressed {
+  border-color: #6e6e6e;
+}
+
+QCheckBox::indicator:checked {
+  border-color: #99c8ff;
+  background-color: #99c8ff;
+}
+
+QCheckBox::indicator:checked:hover,
+QCheckBox::indicator:checked:focus {
+  border-color: #d1e6ff;
+  background-color: #d1e6ff;
+}
+
+QCheckBox::indicator:checked:disabled {
+  border-color: #757575;
+  background-color: #757575;
+}
+
+QCheckBox::indicator:checked:pressed {
+  border-color: #61a9ff;
+  background-color: #61a9ff;
+}
+
+/* QGroupBox --------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qgroupbox
+
+  --------------------------------------------------------------------------- */
+
+QGroupBox {
+    border-color: #676766;
+}
+
+/* QRadioButton -----------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qradiobutton
+
+  --------------------------------------------------------------------------- */
+QRadioButton {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QRadioButton:disabled {
+  background-color: #202020;
+  color: #737373;
+}
+
+QRadioButton QWidget {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QRadioButton::indicator:unchecked {
+  image: url(":/icon/dark/radio_unchecked.png");
+}
+
+QRadioButton::indicator:unchecked:hover,
+QRadioButton::indicator:unchecked:focus,
+QRadioButton::indicator:unchecked:pressed {
+  image: url(":/icon/dark/radio_unchecked_focus.png");
+}
+
+QRadioButton::indicator:unchecked:disabled {
+  image: url(":/icon/dark/radio_unchecked_disabled.png");
+}
+
+QRadioButton::indicator:checked {
+  image: url(":/icon/dark/radio_checked.png");
+}
+
+QRadioButton::indicator:checked:hover,
+QRadioButton::indicator:checked:focus,
+QRadioButton::indicator:checked:pressed {
+  image: url(":/icon/dark/radio_checked_focus.png");
+}
+
+QRadioButton::indicator:checked:disabled {
+  image: url(":/icon/dark/radio_checked_disabled.png");
+}
+
+/* QMenuBar ---------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qmenubar
+
+  --------------------------------------------------------------------------- */
+QMenuBar {
+  background-color: #6B6B6B;
+  color: #ffffff;
+  selection-background-color: #1a72bb;
+}
+
+QMenuBar::item {
+  background: transparent;
+}
+
+QMenuBar::item:selected {
+  background: transparent;
+  background-color: #1a72bb;
+}
+
+QMenuBar::item:pressed {
+  background-color: #1a72bb;
+  color: #ffffff;
+}
+
+/* QMenu ------------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qmenu
+
+  --------------------------------------------------------------------------- */
+QMenu {
+  color: #ffffff;
+  background-color: #37414f;
+  selection-background-color: #1a72bb;
+}
+
+QMenu::separator {
+  background-color: #616161;
+  color: #ffffff;
+}
+
+QMenu::item {
+  background-color: #37414f;
+}
+
+QMenu::item:selected {
+  color: #ffffff;
+  background-color: #1a72bb;
+}
+
+QMenu::item:pressed {
+  background-color: #1a72bb;
+}
+
+QMenu::indicator:exclusive:unchecked {
+  image: url(":/icon/dark/radio_unchecked.png");
+}
+
+QMenu::indicator:exclusive:unchecked:hover,
+QMenu::indicator:exclusive:unchecked:focus,
+QMenu::indicator:exclusive:unchecked:pressed {
+  image: url(":/icon/dark/radio_unchecked_focus.png");
+}
+
+QMenu::indicator:exclusive:unchecked:disabled {
+  image: url(":/icon/dark/radio_unchecked_disabled.png");
+}
+
+QMenu::indicator:exclusive:checked {
+  image: url(":/icon/dark/radio_checked.png");
+}
+
+QMenu::indicator:exclusive:checked:hover,
+QMenu::indicator:exclusive:checked:focus,
+QMenu::indicator:exclusive:checked:pressed {
+  image: url(":/icon/dark/radio_checked_focus.png");
+}
+
+QMenu::indicator:exclusive:checked:disabled {
+  image: url(":/icon/dark/radio_checked_disabled.png");
+}
+
+/* QAbstractItemView ------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qcombobox
+
+  --------------------------------------------------------------------------- */
+QAbstractItemView {
+  alternate-background-color: #202020;
+  color: #ffffff;
+}
+
+/* QAbstractScrollArea ----------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qabstractscrollarea
+
+  --------------------------------------------------------------------------- */
+QAbstractScrollArea {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QAbstractScrollArea:disabled {
+  color: #737373;
+}
+
+/* QScrollArea ------------------------------------------------------------
+
+  --------------------------------------------------------------------------- */
+QScrollArea QWidget QWidget:disabled {
+  background-color: #202020;
+}
+
+/* QScrollBar -------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qscrollbar
+
+  --------------------------------------------------------------------------- */
+QScrollBar:horizontal {
+  background-color: #202020;
+}
+
+QScrollBar:vertical {
+  background-color: #202020;
+}
+
+QScrollBar::handle:horizontal {
+  background-color: #616161;
+}
+
+QScrollBar::handle:horizontal:hover {
+  background-color: #8a8a8a;
+}
+
+QScrollBar::handle:vertical {
+  background-color: #616161;
+}
+
+QScrollBar::handle:vertical:hover {
+  background-color: #8a8a8a;
+}
+
+QScrollBar::up-arrow:horizontal,
+QScrollBar::down-arrow:horizontal {
+  background: none;
+}
+
+QScrollBar::up-arrow:vertical,
+QScrollBar::down-arrow:vertical {
+  background: none;
+}
+
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {
+  background: none;
+}
+
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+  background: none;
+}
+
+/* QTextEdit --------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-specific-widgets
+
+  --------------------------------------------------------------------------- */
+QTextEdit {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QTextEdit:selected {
+  background: #346792;
+  color: #6B6B6B;
+}
+
+/* QPlainTextEdit ---------------------------------------------------------
+
+  --------------------------------------------------------------------------- */
+QPlainTextEdit {
+  background-color: #202020;
+  color: #ffffff;
+  border-color: #676766;
+}
+
+QPlainTextEdit:selected {
+  background: #346792;
+  color: #6B6B6B;
+}
+
+/* QSizeGrip --------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qsizegrip
+
+  --------------------------------------------------------------------------- */
+QSizeGrip {
+  background: transparent;
+  image: url(":/icon/dark/window_grip.png");
+}
+
+/* QToolBar ---------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtoolbar
+
+  --------------------------------------------------------------------------- */
+QToolBar {
+  background-color: #6B6B6B;
+}
+
+QToolBar:disabled {
+  background-color: #6B6B6B;
+}
+
+QToolBar::handle:horizontal {
+  image: url(":/icon/dark/toolbar_move_horizontal.png");
+}
+
+QToolBar::handle:vertical {
+  image: url(":/icon/dark/toolbar_move_vertical.png");
+}
+
+QToolBar::separator:horizontal {
+  image: url(":/icon/dark/toolbar_separator_horizontal.png");
+}
+
+QToolBar::separator:vertical {
+  image: url(":/icon/dark/toolbar_separator_vertical.png");
+}
+
+QToolButton#qt_toolbar_ext_button {
+  background: #6B6B6B;
+  color: #ffffff;
+}
+
+/* QAbstractSpinBox -------------------------------------------------------
+
+  --------------------------------------------------------------------------- */
+QAbstractSpinBox {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QAbstractSpinBox:up-button {
+  background-color: transparent #202020;
+}
+
+QAbstractSpinBox::up-arrow,
+QAbstractSpinBox::up-arrow:disabled,
+QAbstractSpinBox::up-arrow:off {
+  image: url(":/icon/dark/arrow_up_disabled.png");
+}
+
+QAbstractSpinBox::up-arrow:hover {
+  image: url(":/icon/dark/arrow_up.png");
+}
+
+QAbstractSpinBox:down-button {
+  background-color: transparent #202020;
+}
+
+QAbstractSpinBox::down-arrow,
+QAbstractSpinBox::down-arrow:disabled,
+QAbstractSpinBox::down-arrow:off {
+  image: url(":/icon/dark/arrow_down_disabled.png");
+}
+
+QAbstractSpinBox::down-arrow:hover {
+  image: url(":/icon/dark/arrow_down.png");
+}
+
+QAbstractSpinBox:hover {
+  color: #ffffff;
+}
+
+QAbstractSpinBox:selected {
+  background: #346792;
+  color: #6B6B6B;
+}
+
+/* ------------------------------------------------------------------------ */
+/* DISPLAYS --------------------------------------------------------------- */
+/* ------------------------------------------------------------------------ */
+/* QLabel -----------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qframe
+
+  --------------------------------------------------------------------------- */
+QLabel {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QLabel:disabled {
+  background-color: #202020;
+  color: #737373;
+}
+
+/* QTextBrowser -----------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qabstractscrollarea
+
+  --------------------------------------------------------------------------- */
+QTextBrowser {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QTextBrowser:disabled {
+  background-color: #202020;
+  color: #737373;
+}
+
+/* QGraphicsView ----------------------------------------------------------
+
+  --------------------------------------------------------------------------- */
+QGraphicsView {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QGraphicsView:disabled {
+  background-color: #202020;
+  color: #737373;
+}
+
+/* QCalendarWidget --------------------------------------------------------
+
+  --------------------------------------------------------------------------- */
+
+QCalendarWidget:disabled {
+  background-color: #202020;
+  color: #737373;
+}
+
+/* QLCDNumber -------------------------------------------------------------
+
+  --------------------------------------------------------------------------- */
+QLCDNumber {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QLCDNumber:disabled {
+  background-color: #202020;
+  color: #737373;
+}
+
+/* QProgressBar -----------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qprogressbar
+
+  --------------------------------------------------------------------------- */
+QProgressBar {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QProgressBar:disabled {
+  background-color: #202020;
+  color: #737373;
+}
+
+QProgressBar::chunk {
+  background-color: #346792;
+  color: #202020;
+}
+
+QProgressBar::chunk:disabled {
+  background-color: #26486b;
+  color: #737373;
+}
+
+/* ------------------------------------------------------------------------ */
+/* BUTTONS ---------------------------------------------------------------- */
+/* ------------------------------------------------------------------------ */
+/* QPushButton ------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qpushbutton
+
+  --------------------------------------------------------------------------- */
+QPushButton {
+  background-color: #333333;
+  color: #ffffff;
+  border: 1px solid #888;
+  border-radius: 4px;
+}
+
+QPushButton:disabled {
+  background-color: #363636;
+  color: #737373;
+}
+
+QPushButton:hover {
+  background-color: #2c3d4a;
+  border-color: #145c95;
+}
+
+QPushButton:pressed {
+  background-color: #195685;
+}
+
+QPushButton:selected {
+  background: #616161;
+  color: #ffffff;
+  border-color: #346792;
+}
+
+QPushButton:disabled {
+background-color: #262626;
+	border-color: #3f3f3f;
+}
+
+/* QToolButton ------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtoolbutton
+
+  --------------------------------------------------------------------------- */
+QToolButton {
+  background-color: #6B6B6B;
+  color: #ffffff;
+}
+
+QToolButton:disabled {
+  background-color: #363636;
+  color: #737373;
+}
+
+QToolButton:checked {
+  background-color: #616161;
+}
+
+QToolButton:checked:disabled {
+  background-color: #2B2B2B;
+  color: #737373;
+}
+
+QToolButton:checked:hover {
+  background-color: #7B7B7B;
+  color: #ffffff;
+}
+
+QToolButton:checked:pressed {
+  background-color: #616161;
+}
+
+QToolButton:checked:selected {
+  background: #616161;
+  color: #ffffff;
+}
+
+QToolButton:hover {
+  background-color: #7B7B7B;
+  color: #ffffff;
+}
+
+QToolButton:pressed {
+  background-color: #616161;
+}
+
+QToolButton:selected {
+  background: #616161;
+  color: #ffffff;
+}
+
+QToolButton::menu-indicator {
+  image: url(":/icon/dark/arrow_down.png");
+}
+
+QToolButton::menu-arrow {
+  image: url(":/icon/dark/arrow_down.png");
+}
+
+QToolButton::menu-arrow:hover {
+  image: url(":/icon/dark/arrow_down_focus.png");
+}
+
+/* QCommandLinkButton -----------------------------------------------------
+
+  --------------------------------------------------------------------------- */
+QCommandLinkButton {
+  background-color: transparent;
+  color: #ffffff;
+}
+
+QCommandLinkButton:disabled {
+  background-color: transparent;
+  color: #737373;
+}
+
+/* ------------------------------------------------------------------------ */
+/* INPUTS - NO FIELDS ----------------------------------------------------- */
+/* ------------------------------------------------------------------------ */
+/* QComboBox --------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qcombobox
+
+  --------------------------------------------------------------------------- */
+QComboBox {
+  selection-background-color: #145c95;
+  background-color: #333333;
+  border-color: #888;
+}
+
+QComboBox:hover {
+  background-color: #2c3d4a;
+  border-color: #145c95;
+}
+
+QComboBox QAbstractItemView {
+  background-color: #333333;
+  selection-background-color: #145c95;
+}
+
+QComboBox:disabled {
+  background-color: #202020;
+  color: #737373;
+}
+
+QComboBox:on {
+  selection-background-color: #145c95;
+}
+
+QComboBox::indicator:alternate {
+  background: #202020;
+}
+
+QComboBox::item:alternate {
+  background: #202020;
+}
+
+QComboBox::down-arrow {
+  image: url(":/icon/dark/branch_open.png");
+}
+
+
+/* QSlider ----------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qslider
+
+  --------------------------------------------------------------------------- */
+QSlider:disabled {
+  background: #202020;
+}
+
+QSlider::groove:horizontal {
+  background: #6B6B6B;
+}
+
+QSlider::groove:vertical {
+  background: #6B6B6B;
+}
+
+QSlider::add-page:vertical {
+  background: #346792;
+}
+
+QSlider::add-page:vertical :disabled {
+  background: #26486b;
+}
+
+QSlider::sub-page:horizontal {
+  background: #346792;
+}
+
+QSlider::sub-page:horizontal:disabled {
+  background: #26486b;
+}
+
+QSlider::handle:horizontal {
+  background: #737373;
+}
+
+QSlider::handle:horizontal:hover {
+  background: #346792;
+}
+
+QSlider::handle:vertical {
+  background: #737373;
+}
+
+QSlider::handle:vertical:hover {
+  background: #346792;
+}
+
+/* QLineEdit --------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qlineedit
+
+  --------------------------------------------------------------------------- */
+QLineEdit {
+  background-color: #202020;
+  color: #ffffff;
+  border-color: #8d8d8d;
+}
+
+QLineEdit:disabled {
+  background-color: #202020;
+  color: #737373;
+}
+
+QLineEdit:hover {
+  color: #ffffff;
+}
+
+QLineEdit:focus {
+	border-bottom-color: #145c95;
+}
+
+/* QTabWidget --------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtabwidget-and-qtabbar
+
+  --------------------------------------------------------------------------- */
+QDockWidget {
+	background-color: #ff00ff;
+}
+  
+QTabWidget::pane {
+	border-color: #676766;
+}
+
+
+/* QTabBar ----------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtabwidget-and-qtabbar
+
+  --------------------------------------------------------------------------- */
+QTabBar::tab:top,
+QDockWidget QTabBar::tab:top {
+  background-color: #000;
+  border-color: #676766;
+}
+
+QTabBar::tab:top:selected,
+QDockWidget QTabBar::tab:top:selected {
+  background-color: #202020;
+}
+
+QTabBar::tab:hover:!selected,
+QDockWidget QTabBar::tab:hover:!selected {
+	background-color: #111;
+}
+
+
+/* QTreeView QListView QTableView -----------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtreeview
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qlistview
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtableview
+
+  --------------------------------------------------------------------------- */
+QTreeView:branch:selected,
+QTreeView:branch:hover {
+  background: url(":/icon/dark/transparent.png");
+}
+
+QTreeView:branch:!has-children:!has-siblings:adjoins-item {
+}
+
+QTreeView:branch:has-children:!has-siblings:closed,
+QTreeView:branch:closed:has-children:has-siblings {
+  image: url(":/icon/dark/branch_closed.png");
+}
+
+QTreeView:branch:open:has-children:!has-siblings,
+QTreeView:branch:open:has-children:has-siblings {
+  image: url(":/icon/dark/branch_open.png");
+}
+
+QTreeView:branch:has-children:!has-siblings:closed:hover,
+QTreeView:branch:closed:has-children:has-siblings:hover {
+  image: url(":/icon/dark/branch_closed_focus.png");
+}
+
+QTreeView:branch:open:has-children:!has-siblings:hover,
+QTreeView:branch:open:has-children:has-siblings:hover {
+  image: url(":/icon/dark/branch_open_focus.png");
+}
+
+QTreeView,
+QListView,
+QTableView,
+QColumnView {
+  background-color: #202020;
+  color: #ffffff;
+  gridline-color: #6B6B6B;
+}
+
+QTreeView:disabled,
+QListView:disabled,
+QTableView:disabled,
+QColumnView:disabled {
+  background-color: #202020;
+  color: #737373;
+}
+
+QTreeView:selected,
+QListView:selected,
+QTableView:selected,
+QColumnView:selected {
+  background-color: #346792;
+  color: #6B6B6B;
+}
+
+QTreeView::item:pressed,
+QListView::item:pressed,
+QTableView::item:pressed,
+QColumnView::item:pressed {
+  background-color: #346792;
+}
+
+QTreeView::item:selected:active,
+QListView::item:selected:active,
+QTableView::item:selected:active,
+QColumnView::item:selected:active {
+  background-color: #346792;
+}
+
+QTreeView::item:selected:!active,
+QListView::item:selected:!active,
+QTableView::item:selected:!active,
+QColumnView::item:selected:!active {
+  color: #ffffff;
+  background-color: #37414f;
+}
+
+QTreeView::item:!selected:hover,
+QListView::item:!selected:hover,
+QTableView::item:!selected:hover,
+QColumnView::item:!selected:hover {
+  color: #ffffff;
+  background-color: #37414f;
+}
+
+QTableCornerButton::section {
+  background-color: #202020;
+}
+
+/* QHeaderView ------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qheaderview
+
+  --------------------------------------------------------------------------- */
+QHeaderView {
+  background-color: #6B6B6B;
+}
+
+QHeaderView:disabled {
+  background-color: #6B6B6B;
+}
+
+QHeaderView::section {
+  background-color: #6B6B6B;
+  color: #ffffff;
+}
+
+QHeaderView::section::horizontal:disabled {
+  color: #737373;
+}
+
+QHeaderView::section::vertical:disabled {
+  color: #737373;
+}
+
+QHeaderView::down-arrow {
+  /* transparent arrow background and size */
+  background-color: #6B6B6B;
+  image: url(":/icon/dark/arrow_down.png");
+}
+
+QHeaderView::up-arrow {
+  background-color: #6B6B6B;
+  image: url(":/icon/dark/arrow_up.png");
+}
+
+/* QToolBox --------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtoolbox
+
+  --------------------------------------------------------------------------- */
+QToolBox::tab {
+  background-color: #202020;
+  color: #ffffff;
+}
+
+QToolBox::tab:disabled {
+  color: #737373;
+}
+
+QToolBox::tab:selected {
+  background-color: #616161;
+}
+
+QToolBox::tab:selected:disabled {
+  background-color: #6B6B6B;
+}
+
+QToolBox::tab:!selected {
+  background-color: #6B6B6B;
+}
+
+QToolBox::tab:!selected:disabled {
+  background-color: #202020;
+}
+
+QToolBox QScrollArea QWidget QWidget {
+  background-color: #202020;
+}
+
+/* QFrame -----------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qframe
+  https://doc.qt.io/qt-5/qframe.html#-prop
+  https://doc.qt.io/qt-5/qframe.html#details
+  https://stackoverflow.com/questions/14581498/qt-stylesheet-for-hline-vline-color
+
+  --------------------------------------------------------------------------- */
+.QFrame[frameShape="4"] {
+  background-color: #6B6B6B;
+}
+
+.QFrame[frameShape="5"] {
+  background-color: #6B6B6B;
+}
+
+/* QSplitter --------------------------------------------------------------
+
+  https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qsplitter
+
+  --------------------------------------------------------------------------- */
+QSplitter {
+  background-color: #6B6B6B;
+}
+
+QSplitter::handle {
+  background-color: #6B6B6B;
+}
+
+QSplitter::handle:hover {
+  background-color: #737373;
+}
+
+QSplitter::handle:horizontal {
+  image: url(":/icon/dark/line_vertical.png");
+}
+
+QSplitter::handle:vertical {
+  image: url(":/icon/dark/line_horizontal.png");
+}
+
+/* QDateEdit, QDateTimeEdit -----------------------------------------------
+
+  --------------------------------------------------------------------------- */
+QDateEdit,
+QDateTimeEdit {
+  selection-background-color: #346792;
+}
+
+QDateEdit:on,
+QDateTimeEdit:on {
+  selection-background-color: #346792;
+}
+
+QDateEdit::down-arrow,
+QDateTimeEdit::down-arrow {
+  image: url(":/icon/dark/arrow_down_disabled.png");
+}
+
+QDateEdit::down-arrow:on,
+QDateEdit::down-arrow:hover,
+QDateEdit::down-arrow:focus,
+QDateTimeEdit::down-arrow:on,
+QDateTimeEdit::down-arrow:hover,
+QDateTimeEdit::down-arrow:focus {
+  image: url(":/icon/dark/arrow_down.png");
+}
+
+QDateEdit QAbstractItemView,
+QDateTimeEdit QAbstractItemView {
+  background-color: #202020;
+  selection-background-color: #346792;
+}
+
+/* QAbstractView ----------------------------------------------------------
+
+  --------------------------------------------------------------------------- */
+QAbstractView:hover {
+  color: #ffffff;
+}
+
+QAbstractView:selected {
+  background: #346792;
+  color: #6b6b6b;
+}
+
+/* Specific elements ----------------------------------------------------------
+
+  --------------------------------------------------------------------------- */
+#MainWindow, #centralWidget {
+    background-color: #000;
+}
