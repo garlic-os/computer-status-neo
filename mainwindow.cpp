@@ -34,8 +34,8 @@ const static auto pfo = QOverload<int, QProcess::ExitStatus>::of(&QProcess::fini
 const QString processErrorDump(QProcess *process) {
     return "Command line: " + process->program() + ' ' + process->arguments().join(' ') + '\n' +
            "QProcess error code: " + process->error() + '\n' +
-           "Return code: " + QString::number(process->exitCode()) + "\n\n" +
-           process->readAllStandardOutput() + "\n\n" +
+           "Return code: " + QString::number(process->exitCode()) + "\n\nstdout:\n" +
+           process->readAllStandardOutput() + "\n\nstderr:\n" +
            process->readAllStandardError();
 }
 
