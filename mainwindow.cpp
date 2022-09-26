@@ -5,17 +5,14 @@
 
 #include <QDebug>
 
-#include <QClipboard>
 #include <QByteArray>
+#include <QClipboard>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
-#include <QFileSystemWatcher>
 #include <QInputDialog>
-#include <QList>
 #include <QMessageBox>
 #include <QObject>
-#include <QPushButton>
 #include <QRegularExpression>
 #include <QSettings>
 
@@ -25,10 +22,6 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
-// I hate seeing this long ugly thing everywhere so it's going in its own variable.
-// "Process Finished Overload"
-const static auto pfo = QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished);
 
 
 const QString processErrorDump(QProcess *process) {
@@ -40,21 +33,47 @@ const QString processErrorDump(QProcess *process) {
 }
 
 
-void loadStylesheet(const QString &path) {
-    qDebug() << "Loading stylesheet...";
-    QFile themeFile(path);
+QByteArray processOutput(QByteArray text) {
+    qDebug() << text;
+    // Remove leading CRs and LFs
+    while (text.startsWith("\r") || text.startsWith("\n")) {
+        text = text.mid(1);
+    }
+    return text;
+}
+
+
+// Load the common QSS. If system is on dark theme, also load the dark theme QSS.
+void loadTheme() {
+    qDebug() << "Loading common styles...";
+    QFile themeFile(":/style/common.qss");
     themeFile.open(QFile::ReadOnly | QFile::Text);
     QTextStream themeFileStream(&themeFile);
-    qApp->setStyleSheet(themeFileStream.readAll());
-    qDebug() << "Stylesheet successfully loaded.";
+    QString qss = themeFileStream.readAll();
+    QSettings settings(
+        "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        QSettings::NativeFormat
+    );
+    if (settings.value("AppsUseLightTheme", 1).toInt() == 0) {
+        qDebug() << "Loading dark theme overrides...";
+        QFile themeFile(":/style/dark.qss");
+        themeFile.open(QFile::ReadOnly | QFile::Text);
+        QTextStream themeFileStream(&themeFile);
+        qss += themeFileStream.readAll();
+    }
+    qDebug() << "Applying styles...";
+    qApp->setStyleSheet(qss);
+    qDebug() << "Stylesheets successfully applied.";
 }
 
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow) {
-        updateLabelRunningAs();
-
+    ui(new Ui::MainWindow),
+    // qssWatcher(new QFileSystemWatcher),
+    runner(new QProcess),
+    runnerTimer(new QTimer),
+    consoleRunner(new QProcess) {
         // Populate the Actions map.
         // NB: If you change/add any action, you must update all of these things:
         //     1. Its entry in this map
@@ -89,122 +108,168 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->inputComputer->setFocus();  // Autofocus query box
 
         // Set default computer query to self
-        QProcess process;
-        process.start("hostname");
-        process.waitForFinished();
-        ui->inputComputer->setText(process.readAllStandardOutput().chopped(2).toLower());
+        runner->start("hostname");
+        runner->waitForFinished();
+        ui->inputComputer->setText(runner->readAllStandardOutput().chopped(2).toLower());
 
-        // Load dark theme if system is in dark mode
-        QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", QSettings::NativeFormat);
-        if (settings.value("AppsUseLightTheme", 1).toInt() == 0) {
-            qDebug() << "System is in dark mode.";
-            loadStylesheet(":qdarkstyle/style.qss");
+        // Set the "Running as" label
+        runner->start("whoami");
+        runner->waitForFinished();
+        ui->labelRunningAs->setText("Running as: " + runner->readLine().chopped(2));
+        runner->readAllStandardOutput(); // Clear stdout for next process
+
+        // Attach event listeners and set configuration for the global process objects
+        setupRunner(runner.data());
+        setupRunnerTimer(runnerTimer.data(), runner.data());
+        setupConsoleRunner(consoleRunner.data());
+
+        loadTheme();
+
+        // For development: hot reload stylesheets from FS
+//        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\common.qss");
+//        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\dark.qss");
+//        QFileSystemWatcher::connect(qssWatcher, &QFileSystemWatcher::fileChanged, [=]() {
+//            qDebug() << "Loading common styles...";
+//            QFile themeFile("S:/Documents/Qt/ComputerStatusNeo/style/common.qss");
+//            themeFile.open(QFile::ReadOnly | QFile::Text);
+//            QTextStream themeFileStream(&themeFile);
+//            QString qss = themeFileStream.readAll();
+//            if (false) {
+//                qDebug() << "Loading dark theme overrides...";
+//                QFile themeFile("S:/Documents/Qt/ComputerStatusNeo/style/dark.qss");
+//                themeFile.open(QFile::ReadOnly | QFile::Text);
+//                QTextStream themeFileStream(&themeFile);
+//                qss += themeFileStream.readAll();
+//            }
+//            qDebug() << "Applying styles...";
+//            qApp->setStyleSheet(qss);
+//            qDebug() << "Stylesheets successfully applied.";
+//        });
+
+        buttonsList = this->findChildren<QPushButton *>();
+}
+
+
+MainWindow::~MainWindow() {}
+
+
+void MainWindow::setupRunner(QProcess *process) {
+    // When process finishes
+    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=]() {
+        qDebug() << "Process finished";
+        setButtonsEnabled(true);
+        if (ui->textResult->toPlainText().length() == 0) {
+            ui->textResult->setPlainText("(No output.)");
         }
+    });
 
-        // For development: hot reload stylesheet from FS
-//        auto qssPath = "S:\\Documents\\Qt\\ComputerStatusNeo\\qdarkstyle\\style-new.qss";
-//        loadStylesheet(qssPath);
-//        auto *qssWatcher = new QFileSystemWatcher();
-//        qssWatcher->addPath(qssPath);
-//        QFileSystemWatcher::connect(qssWatcher, &QFileSystemWatcher::fileChanged, &loadStylesheet);
-}
+    // When process has new content in stdout
+    QObject::connect(process, &QProcess::readyReadStandardOutput, [=]() {
+        if (ui->textResult->toPlainText() == "Connecting...") {
+            ui->textResult->setPlainText("");
+        }
+        ui->textResult->setPlainText(
+            ui->textResult->toPlainText() +
+            processOutput(process->readAllStandardOutput())
+        );
+    });
 
-MainWindow::~MainWindow() {
-//    delete qssWatcher;
-    delete ui;
-}
+    // When process has new content in stderr
+    QObject::connect(process, &QProcess::readyReadStandardError, [=]() {
+        if (ui->textResult->toPlainText() == "Connecting...") {
+            ui->textResult->setPlainText("");
+        }
+        ui->textResult->setPlainText(
+            ui->textResult->toPlainText() +
+            processOutput(process->readAllStandardError())
+        );
+    });
 
-inline const QString MainWindow::compName() const {
-    return ui->inputComputer->text();
-}
-
-bool MainWindow::confirm(const QString &message, const QString &title) const {
-    return QMessageBox::warning(nullptr, title, message,
-                         QMessageBox::Ok | QMessageBox::Cancel,
-                         QMessageBox::Cancel) == QMessageBox::Ok;
-}
-
-void MainWindow::updateLabelRunningAs() {
-    auto process = new QProcess(this);
-    process->start("whoami");
-    QObject::connect(process, pfo, [=]() {
-        ui->labelRunningAs->setText("Running as: " + process->readLine().chopped(2));
-        delete process;
+    // If something goes wrong
+    QProcess::connect(process, &QProcess::errorOccurred, [=]() {
+        ui->textResult->setPlainText(
+            processErrorDump(process) + "\n---\n\n" +
+            ui->textResult->toPlainText()
+        );
     });
 }
 
-// Run a remote command and show the output in a local Powershell window.
-void MainWindow::executeToNewWindow(const QString &command, bool remote,
-                                    const t_callback& callback) {
-    auto process = new QProcess(this);
 
+// Kill the running process if it spins for too long
+void MainWindow::setupRunnerTimer(QTimer *timer, QProcess *runner) {
+    QTimer::connect(timer, &QTimer::timeout, [=]() {
+        if (runner->state() != QProcess::NotRunning) {
+            ui->textResult->setPlainText("Process timed out.");
+            runner->kill();
+        }
+    });
+}
+
+
+void MainWindow::setupConsoleRunner(QProcess *process) {
     // Show console window (hidden by default)
     process->setCreateProcessArgumentsModifier([](QProcess::CreateProcessArguments *args) {
         args->flags |= CREATE_NEW_CONSOLE;
         args->startupInfo->dwFlags &=~ static_cast<unsigned long>(STARTF_USESTDHANDLES);
     });
 
-    auto wrapped_command = remote ?
+    // If something goes wrong
+    QProcess::connect(process, &QProcess::errorOccurred, [=]() {
+        switch (process->exitCode()) {
+            case -1073741510:
+                // Reverse Shell returns this when everything is fine 🤷
+                return;
+            default:
+                ui->textResult->setPlainText(
+                    "Error occurred while running the command\n" +
+                    processErrorDump(process)
+                );
+        }
+    });
+}
+
+
+inline const QString MainWindow::compName() const {
+    return ui->inputComputer->text();
+}
+
+
+bool MainWindow::confirm(const QString &message, const QString &title) const {
+// bool MainWindow::confirm(const QString &message, const QString &title, const QString&okText, const QString &cancelText) const {
+    return QMessageBox::warning(nullptr, title, message,
+                         QMessageBox::Ok | QMessageBox::Cancel,
+                         QMessageBox::Cancel) == QMessageBox::Ok;
+}
+
+
+// Run a remote command and show the output in a local Powershell window.
+void MainWindow::executeToNewWindow(const QString &command, bool remote) {
+    auto wrappedCommand = remote ?
                 "powershell -NoExit Invoke-Command -ComputerName " + compName() + " -ScriptBlock { " + command + " }" :
                 "powershell -NoExit " + command;
-    qDebug() << "Running command: " << wrapped_command;
-    process->start(wrapped_command);
-
-    // Delete process object when the PS window closes
-    QObject::connect(process, pfo, [=]() {
-        qDebug() << processErrorDump(process);
-        callback(process);
-        delete process;
-    });
-
-    QProcess::connect(process, &QProcess::errorOccurred, [=]() {
-        ui->textResult->setPlainText(
-            "Error occurred while running the command\n" +
-            processErrorDump(process)
-        );
-    });
+    qDebug() << "Running command: " << wrappedCommand;
+    consoleRunner->start(wrappedCommand);
 }
 
 
 // Run a remote command and print its output to the Result pane.
-void MainWindow::executeToResultPane(const QString &command, bool remote,
-                                     const t_callback& callback) {
+void MainWindow::executeToResultPane(const QString &command, bool remote, int timeout_ms) {
     setButtonsEnabled(false);
     ui->textResult->setPlainText("Connecting...");
-    auto process = new QProcess(this);
-    auto wrapped_command = remote ?
+
+    auto wrappedCommand = remote ?
                 "powershell Invoke-Command -ComputerName " + compName() + " -ScriptBlock { " + command + " }" :
                 "powershell " + command;
-    qDebug() << "Running command: " << wrapped_command;
-    process->start(wrapped_command);
+    qDebug() << "Running command: " << wrappedCommand;
+    runner->start(wrappedCommand);
 
-    // When process finishes
-    QObject::connect(process, pfo, [=]() {
-        QByteArray text = process->readAllStandardOutput();
-        if (text.length() == 0) {
-            text = process->readAllStandardError();
-        }
-//        qDebug() << text;
-        while (text.startsWith("\r") || text.startsWith("\n")) {  // Remove leading CRs and LFs
-//            qDebug() << "Leading CR/LF detected";
-            text = text.mid(1);
-        }
-        if (text.length() == 0) {
-            text = "(No output.)";
-        }
-        ui->textResult->setPlainText(text);
-        setButtonsEnabled(true);
-        callback(process);
-        delete process;
-    });
-
-    QProcess::connect(process, &QProcess::errorOccurred, [=]() {
-        ui->textResult->setPlainText(processErrorDump(process));
-    });
+    if (timeout_ms >= 0) {
+        runnerTimer->start(timeout_ms);
+    }
 }
 
+
 void MainWindow::setButtonsEnabled(bool enabled) {
-    static QList<QPushButton *> buttonsList = this->findChildren<QPushButton *>();
     for (int i = 0; i < buttonsList.count(); i++) {
         buttonsList.at(i)->setEnabled(enabled);
     }
@@ -281,10 +346,22 @@ void MainWindow::on_buttonExecuteAction_clicked() {
     (this->*action)();
 }
 
+// Use Start-Process's "-Credential" argument to re-run Computer Status as a different user.
 void MainWindow::on_buttonSwitchUser_clicked() {
-    ui->textResult->setPlainText("Switch user: not implemented. As a workaround, shift-right-click Computer Status's executable and click \"Run as different user\".");
+    qDebug() << qApp->applicationFilePath();
+    qDebug() << qApp->applicationDirPath();
+    auto command = "Start-Process"
+                   " -FilePath " + qApp->applicationFilePath() +
+                   " -WorkingDirectory " + qApp->applicationDirPath() +
+                   " -Credential ''";
+    runner->start(command);
+    runner->waitForFinished();  // This is fine because Windows blocks the main window for the auth popup anyway
+    if (runner->exitCode() == 0) {
+        qApp->quit();
+    } else if (runner->exitCode() == 1) {
+        ui->textResult->setPlainText("Invalid username or password. If you entered your password correctly, remember to add \"um-ad\\\" to the beginning of your username.");
+    }
 }
-
 
 void MainWindow::on_buttonCopy_clicked() {
     static QClipboard *clipboard = QGuiApplication::clipboard();

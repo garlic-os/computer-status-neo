@@ -1,16 +1,19 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <functional>
 #include <string>
 #include <unordered_map>
+#include <QList>
 #include <QMainWindow>
 #include <QProcess>
+#include <QPushButton>
+#include <QSharedPointer>
 #include <QString>
 #include <QTemporaryDir>
+#include <QTimer>
 
 // DEBUG
-//#include <QFileSystemWatcher>
+#include <QFileSystemWatcher>
 
 namespace Ui {
     class MainWindow;
@@ -40,19 +43,26 @@ private slots:
     void on_buttonClear_clicked();
 
 private:
-    Ui::MainWindow *ui;
+    QSharedPointer<Ui::MainWindow> ui;
+    QSharedPointer<QProcess> runner;
+    QSharedPointer<QTimer> runnerTimer;
+    QSharedPointer<QProcess> consoleRunner;  // Separate process for commands that show the console
+    QList<QPushButton *> buttonsList;
 
-    void updateLabelRunningAs();
+    // DEBUG
+//    QSharedPointer<QFileSystemWatcher> qssWatcher;
 
-    // Callback and dummy to use as default argument
-    using t_callback = std::function<void (const QProcess*)>;
-    const static inline t_callback dummy = [](const QProcess*){};
+    // Setup functions
+    void setupRunner(QProcess *process);
+    void setupRunnerTimer(QTimer *timer, QProcess *runner);
+    void setupConsoleRunner(QProcess *process);
+
+    const static int DEFAULT_TIMEOUT_MS = 1000 * 10;  // 10 seconds
 
     // Helper functions
-    void executeToNewWindow(const QString &command, bool remote=false,
-                            const t_callback& callback=dummy);
+    void executeToNewWindow(const QString &command, bool remote=false);
     void executeToResultPane(const QString &command, bool remote=false,
-                             const t_callback& callback=dummy);
+                             int timeout_ms=DEFAULT_TIMEOUT_MS);
     inline const QString compName() const;
     bool confirm(const QString &message, const QString &title) const;
 
@@ -81,9 +91,6 @@ private:
     void action_listPhysicalDrives();
     void action_getSerialNumber();
     void action_getBIOSVersion();
-
-    // DEBUG
-//    QFileSystemWatcher *qssWatcher;
 };
 
 #endif // MAINWINDOW_H
