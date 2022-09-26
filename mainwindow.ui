@@ -614,7 +614,7 @@ height: 40px;</string>
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="computerstatusneo.qrc">:/under-construction-1.gif</pixmap>
+         <pixmap resource="assets.qrc">:/img/under-construction-1.gif</pixmap>
         </property>
        </widget>
       </widget>
@@ -635,7 +635,7 @@ height: 40px;</string>
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="computerstatusneo.qrc">:/under-construction-2.gif</pixmap>
+         <pixmap resource="assets.qrc">:/img/under-construction-2.gif</pixmap>
         </property>
        </widget>
       </widget>
@@ -713,7 +713,7 @@ height: 40px;</string>
   <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources>
-  <include location="computerstatusneo.qrc"/>
+  <include location="assets.qrc"/>
  </resources>
  <connections/>
 </ui>
