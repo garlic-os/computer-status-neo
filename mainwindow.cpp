@@ -254,7 +254,7 @@ void MainWindow::executeToNewWindow(const QString &command, bool remote) {
 
 // Run a remote command and print its output to the Result pane.
 void MainWindow::executeToResultPane(const QString &command, bool remote, int timeout_ms) {
-    setButtonsEnabled(false);
+    setButtonsEnabled(false);  // Will be re-enabled when the process finishes
     ui->textResult->setPlainText("Connecting...");
 
     auto wrappedCommand = remote ?
@@ -355,7 +355,7 @@ void MainWindow::on_buttonSwitchUser_clicked() {
                    " -WorkingDirectory " + qApp->applicationDirPath() +
                    " -Credential ''";
     runner->start(command);
-    runner->waitForFinished();  // This is fine because Windows blocks the main window for the auth popup anyway
+    runner->waitForFinished();  // This is fine because the auth popup blocks the main window anyway
     if (runner->exitCode() == 0) {
         qApp->quit();
     } else if (runner->exitCode() == 1) {
