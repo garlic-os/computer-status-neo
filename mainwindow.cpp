@@ -70,7 +70,7 @@ void loadTheme() {
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    // qssWatcher(new QFileSystemWatcher),
+//    qssWatcher(new QFileSystemWatcher),
     runner(new QProcess),
     runnerTimer(new QTimer),
     consoleRunner(new QProcess) {
@@ -128,7 +128,7 @@ MainWindow::MainWindow(QWidget *parent) :
         // For development: hot reload stylesheets from FS
 //        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\common.qss");
 //        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\dark.qss");
-//        QFileSystemWatcher::connect(qssWatcher, &QFileSystemWatcher::fileChanged, [=]() {
+//        QFileSystemWatcher::connect(qssWatcher.data(), &QFileSystemWatcher::fileChanged, [=]() {
 //            qDebug() << "Loading common styles...";
 //            QFile themeFile("S:/Documents/Qt/ComputerStatusNeo/style/common.qss");
 //            themeFile.open(QFile::ReadOnly | QFile::Text);

@@ -50,7 +50,7 @@ private:
     QList<QPushButton *> buttonsList;
 
     // DEBUG
-//    QSharedPointer<QFileSystemWatcher> qssWatcher;
+    QSharedPointer<QFileSystemWatcher> qssWatcher;
 
     // Setup functions
     void setupRunner(QProcess *process);
