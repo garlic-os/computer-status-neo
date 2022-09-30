@@ -117,11 +117,6 @@ QDockWidget QTabBar::tab:hover:!selected {
     font-family: Consolas;
 }
 
-#actionsBar {
-    /* please align left im begging you */
-	text-align: left;
-}
-
 #buttonExecuteAction {
     font-size: 13px;
     font-weight: bold;
