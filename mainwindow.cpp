@@ -158,7 +158,7 @@ void MainWindow::setupRunner(QProcess *process) {
     QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=]() {
         qDebug() << "Process finished";
         setButtonsEnabled(true);
-        if (ui->textResult->toPlainText().length() == 0) {
+        if (ui->textResult->toPlainText() == "Connecting...") {
             ui->textResult->setPlainText("(No output.)");
         }
     });
