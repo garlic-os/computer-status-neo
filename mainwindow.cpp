@@ -401,7 +401,7 @@ void MainWindow::action_reinstallOffice365() {
 
 // List the printers that are installed on the machine
 void MainWindow::action_listInstalledPrinters() {
-    executeToResultPane("Get-WMIObject Win32_Printer -ComputerName " + compName() + " | Select Name, Location");
+    executeToResultPane("Get-WMIObject Win32_Printer -ComputerName " + compName() + " | Select Name, Location, Comment");
 }
 
 // Install a printer by name
