@@ -103,7 +103,6 @@ MainWindow::MainWindow(QWidget *parent) :
             { "Get BIOS version", &MainWindow::action_getBIOSVersion }
         };
 
-
         ui->setupUi(this);  // Boilerplate
         ui->inputComputer->setFocus();  // Autofocus query box
 
@@ -247,7 +246,7 @@ bool MainWindow::confirm(const QString &message, const QString &title) const {
 
 // Run a remote command and show the output in a local Powershell window.
 void MainWindow::executeToNewWindow(const QString &command, bool remote) {
-    auto wrappedCommand = remote ?
+    QString wrappedCommand = remote ?
                 "powershell -NoExit Invoke-Command -ComputerName " + compName() + " -ScriptBlock { " + command + " }" :
                 "powershell -NoExit " + command;
     log << "Running command: " << wrappedCommand;
@@ -260,7 +259,7 @@ void MainWindow::executeToResultPane(const QString &command, bool remote, int ti
     setButtonsEnabled(false);  // Will be re-enabled when the process finishes
     ui->textResult->setPlainText("Connecting...");
 
-    auto wrappedCommand = remote ?
+    QString wrappedCommand = remote ?
                 "powershell Invoke-Command -ComputerName " + compName() + " -ScriptBlock { " + command + " }" :
                 "powershell " + command;
     log << "Running command: " << wrappedCommand;
@@ -388,7 +387,10 @@ void MainWindow::action_queryUsers() {
 // Good ol' KMS
 void MainWindow::action_reactivateWindows() {
     if (!confirm("Are you sure you want to reactivate this computer's Windows license?", compName() + ": Reactivate Windows License")) return;
-    executeToNewWindow("slmgr " + compName() + " /skms umad-kmsdfs-01.umad.umsystem.edu; slmgr " + compName() + " /ato");
+    executeToNewWindow(
+        "slmgr " + compName() + " /skms umad-kmsdfs-01.umad.umsystem.edu; "
+        "slmgr " + compName() + " /ato"
+    );
 }
 
 // See if the computer is on the AD
@@ -399,7 +401,11 @@ void MainWindow::action_getADJoinStatus() {
 // Run the Microsoft Office 365 reinstall script
 void MainWindow::action_reinstallOffice365() {
     if (!confirm("Are you sure you want to reinstall Office 365 on this computer?", compName() + ": Reinstall Microsoft Office 365")) return;
-    executeToNewWindow("pushd \\\\minerfiles.mst.edu\\dfs\\software\\appdeploy\\office.365\\x64; setup.exe /configure configuration-test.xmlcd", true);
+    executeToNewWindow(
+        "pushd \\\\minerfiles.mst.edu\\dfs\\software\\appdeploy\\office.365\\x64; "
+        "setup.exe /configure configuration-test.xmlcd",
+        true
+    );
 }
 
 // List the printers that are installed on the machine
@@ -415,7 +421,14 @@ void MainWindow::action_installPrinter() {
         "Enter the name of the printer to install:",
         QLineEdit::Normal, "", &ok, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
     if (ok && !printerName.isEmpty()) {
-        executeToNewWindow("rundll32 printui.dll,PrintUIEntry /c \\\\" + compName() + " /in /n \\\\winprint.mst.edu\\" + printerName);
+        executeToNewWindow(
+            "echo 'Adding printer \"" + printerName + "\" to computer \"" + compName() + "\" ...'; "
+            "Add-Printer"
+            " -ComputerName " + compName() +
+            " -IppURL '" + printerName + ".prn.mst.edu'; "
+            "echo Done.; "
+            "Get-WMIObject Win32_Printer -ComputerName " + compName() + " | Select Name, Location, Comment"
+        );
     }
 }
 
@@ -468,11 +481,20 @@ void MainWindow::action_listInstalledSoftware() {
 //}
 
 void MainWindow::action_listNetworkDrives() {
-    executeToResultPane("Get-WmiObject Win32_MappedLogicalDisk -ComputerName " + compName() + " | Select PSComputerName, Name, ProviderName");
+    executeToResultPane(
+        "Get-WmiObject Win32_MappedLogicalDisk"
+        " -ComputerName " + compName() +
+        " | Select PSComputerName, Name, ProviderName"
+    );
 }
 
 void MainWindow::action_listPhysicalDrives() {
-    executeToResultPane("Get-WmiObject -Class MSFT_PhysicalDisk -ComputerName " + compName() + " -Namespace root\\Microsoft\\Windows\\Storage | Select FriendlyName");
+    executeToResultPane(
+        "Get-WmiObject -Class MSFT_PhysicalDisk"
+        " -ComputerName " + compName() +
+        " -Namespace root\\Microsoft\\Windows\\Storage"
+        " | Select FriendlyName"
+    );
 }
 
 void MainWindow::action_getSerialNumber() {
