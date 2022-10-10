@@ -133,5 +133,6 @@ QDockWidget QTabBar::tab:hover:!selected {
 #buttonCopy,
 #buttonClear {
 	text-align: center;
-	padding-right: 1.5px;
+	padding-right: -2.25px;
+	padding-bottom: -2px;
 }
