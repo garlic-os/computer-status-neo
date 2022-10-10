@@ -4,6 +4,7 @@
  */
 
 #include <QDebug>
+#define log qDebug().nospace().noquote()
 
 #include <QByteArray>
 #include <QClipboard>
@@ -36,7 +37,6 @@ const QString processErrorDump(QProcess *process) {
 
 
 QByteArray processOutput(QByteArray text) {
-    qDebug() << text;
     // Remove leading CRs and LFs
     while (text.startsWith("\r") || text.startsWith("\n")) {
         text = text.mid(1);
@@ -47,7 +47,7 @@ QByteArray processOutput(QByteArray text) {
 
 // Load the common QSS. If system is on dark theme, also load the dark theme QSS.
 void loadTheme() {
-    qDebug() << "Loading common styles...";
+    log << "Loading common styles...";
     QFile themeFile(":/style/common.qss");
     themeFile.open(QFile::ReadOnly | QFile::Text);
     QTextStream themeFileStream(&themeFile);
@@ -57,15 +57,15 @@ void loadTheme() {
         QSettings::NativeFormat
     );
     if (settings.value("AppsUseLightTheme", 1).toInt() == 0) {
-        qDebug() << "Loading dark theme overrides...";
+        log << "Loading dark theme overrides...";
         QFile themeFile(":/style/dark.qss");
         themeFile.open(QFile::ReadOnly | QFile::Text);
         QTextStream themeFileStream(&themeFile);
         qss += themeFileStream.readAll();
     }
-    qDebug() << "Applying styles...";
+    log << "Applying styles...";
     qApp->setStyleSheet(qss);
-    qDebug() << "Stylesheets successfully applied.";
+    log << "Stylesheets successfully applied.";
 }
 
 
@@ -131,21 +131,21 @@ MainWindow::MainWindow(QWidget *parent) :
 //        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\common.qss");
 //        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\dark.qss");
 //        QFileSystemWatcher::connect(qssWatcher.data(), &QFileSystemWatcher::fileChanged, [=]() {
-//            qDebug() << "Loading common styles...";
+//            log << "Loading common styles...";
 //            QFile themeFile("S:/Documents/Qt/ComputerStatusNeo/style/common.qss");
 //            themeFile.open(QFile::ReadOnly | QFile::Text);
 //            QTextStream themeFileStream(&themeFile);
 //            QString qss = themeFileStream.readAll();
 //            if (false) {
-//                qDebug() << "Loading dark theme overrides...";
+//                log << "Loading dark theme overrides...";
 //                QFile themeFile("S:/Documents/Qt/ComputerStatusNeo/style/dark.qss");
 //                themeFile.open(QFile::ReadOnly | QFile::Text);
 //                QTextStream themeFileStream(&themeFile);
 //                qss += themeFileStream.readAll();
 //            }
-//            qDebug() << "Applying styles...";
+//            log << "Applying styles...";
 //            qApp->setStyleSheet(qss);
-//            qDebug() << "Stylesheets successfully applied.";
+//            log << "Stylesheets successfully applied.";
 //        });
 
         buttonsList = this->findChildren<QPushButton *>();
@@ -157,8 +157,8 @@ MainWindow::~MainWindow() {}
 
 void MainWindow::setupRunner(QProcess *process) {
     // When process finishes
-    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=]() {
-        qDebug() << "Process finished";
+    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, [=]() {
+        log << "Process finished";
         setButtonsEnabled(true);
         if (ui->textResult->toPlainText() == "Connecting...") {
             ui->textResult->setPlainText("(No output.)");
@@ -166,7 +166,8 @@ void MainWindow::setupRunner(QProcess *process) {
     });
 
     // When process has new content in stdout
-    QObject::connect(process, &QProcess::readyReadStandardOutput, [=]() {
+    QObject::connect(process, &QProcess::readyReadStandardOutput, this, [=]() {
+        log << "Process stdout";
         if (ui->textResult->toPlainText() == "Connecting...") {
             ui->textResult->setPlainText("");
         }
@@ -177,7 +178,8 @@ void MainWindow::setupRunner(QProcess *process) {
     });
 
     // When process has new content in stderr
-    QObject::connect(process, &QProcess::readyReadStandardError, [=]() {
+    QObject::connect(process, &QProcess::readyReadStandardError, this, [=]() {
+        log << "Process stderr";
         if (ui->textResult->toPlainText() == "Connecting...") {
             ui->textResult->setPlainText("");
         }
@@ -188,7 +190,8 @@ void MainWindow::setupRunner(QProcess *process) {
     });
 
     // If something goes wrong
-    QProcess::connect(process, &QProcess::errorOccurred, [=]() {
+    QProcess::connect(process, &QProcess::errorOccurred, this, [=]() {
+        log << "Process failed";
         ui->textResult->setPlainText(
             processErrorDump(process) + "\n---\n\n" +
             ui->textResult->toPlainText()
@@ -249,8 +252,8 @@ void MainWindow::executeToNewWindow(const QString &command, bool remote) {
     auto wrappedCommand = remote ?
                 "powershell -NoExit Invoke-Command -ComputerName " + compName() + " -ScriptBlock { " + command + " }" :
                 "powershell -NoExit " + command;
-    qDebug() << "Running command: " << wrappedCommand;
-    consoleRunner->start(wrappedCommand);
+    log << "Running command: " << wrappedCommand;
+    consoleRunner->startCommand(wrappedCommand);
 }
 
 
@@ -262,8 +265,8 @@ void MainWindow::executeToResultPane(const QString &command, bool remote, int ti
     auto wrappedCommand = remote ?
                 "powershell Invoke-Command -ComputerName " + compName() + " -ScriptBlock { " + command + " }" :
                 "powershell " + command;
-    qDebug() << "Running command: " << wrappedCommand;
-    runner->start(wrappedCommand);
+    log << "Running command: " << wrappedCommand;
+    runner->startCommand(wrappedCommand);
 
     if (timeout_ms >= 0) {
         runnerTimer->start(timeout_ms);
