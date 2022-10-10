@@ -37,6 +37,7 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-RESOURCES += assets.qrc
+RESOURCES += assets.qrc \
+    qt.qrc
 
 win32:RC_ICONS += computer_on_fire.ico
