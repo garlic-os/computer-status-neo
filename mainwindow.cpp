@@ -73,9 +73,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
 //    qssWatcher(new QFileSystemWatcher),
-    runner(new QProcess),
-    runnerTimer(new QTimer),
-    consoleRunner(new QProcess) {
+    runner(new QProcess(this)),
+    runnerTimer(new QTimer(this)),
+    consoleRunner(new QProcess(this)) {
         // Populate the Actions map.
         // NB: If you change/add any action, you must update all of these things:
         //     1. Its entry in this map
@@ -103,19 +103,17 @@ MainWindow::MainWindow(QWidget *parent) :
             { "Get BIOS version", &MainWindow::action_getBIOSVersion }
         };
 
-        // Disable unused help button in dialog windows
-        QApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
 
         ui->setupUi(this);  // Boilerplate
         ui->inputComputer->setFocus();  // Autofocus query box
 
         // Set default computer query to self
-        runner->start("hostname");
+        runner->startCommand("hostname");
         runner->waitForFinished();
         ui->inputComputer->setText(runner->readAllStandardOutput().chopped(2).toLower());
 
         // Set the "Running as" label
-        runner->start("whoami");
+        runner->startCommand("whoami");
         runner->waitForFinished();
         ui->labelRunningAs->setText("Running as: " + runner->readLine().chopped(2));
         runner->readAllStandardOutput(); // Clear stdout for next process
@@ -130,7 +128,7 @@ MainWindow::MainWindow(QWidget *parent) :
         // For development: hot reload stylesheets from FS
 //        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\common.qss");
 //        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\dark.qss");
-//        QFileSystemWatcher::connect(qssWatcher.data(), &QFileSystemWatcher::fileChanged, [=]() {
+//        QFileSystemWatcher::connect(qssWatcher.data(), &QFileSystemWatcher::fileChanged, this, [=]() {
 //            log << "Loading common styles...";
 //            QFile themeFile("S:/Documents/Qt/ComputerStatusNeo/style/common.qss");
 //            themeFile.open(QFile::ReadOnly | QFile::Text);
@@ -202,7 +200,7 @@ void MainWindow::setupRunner(QProcess *process) {
 
 // Kill the running process if it spins for too long
 void MainWindow::setupRunnerTimer(QTimer *timer, QProcess *runner) {
-    QTimer::connect(timer, &QTimer::timeout, [=]() {
+    QTimer::connect(timer, &QTimer::timeout, this, [=]() {
         if (runner->state() != QProcess::NotRunning) {
             ui->textResult->setPlainText("Process timed out.");
             runner->kill();
@@ -219,7 +217,7 @@ void MainWindow::setupConsoleRunner(QProcess *process) {
     });
 
     // If something goes wrong
-    QProcess::connect(process, &QProcess::errorOccurred, [=]() {
+    QProcess::connect(process, &QProcess::errorOccurred, this, [=]() {
         switch (process->exitCode()) {
             case -1073741510:
                 // Reverse Shell returns this when everything is fine 🤷
