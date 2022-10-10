@@ -12,6 +12,7 @@
 #include <QFile>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QMetaEnum>
 #include <QObject>
 #include <QRegularExpression>
 #include <QSettings>
@@ -25,8 +26,9 @@
 
 
 const QString processErrorDump(QProcess *process) {
+    QMetaEnum pErrorMeta = QMetaEnum::fromType<QProcess::ProcessError>();
     return "Command line: " + process->program() + ' ' + process->arguments().join(' ') + '\n' +
-           "QProcess error code: " + process->error() + '\n' +
+           "QProcess error code: " + pErrorMeta.valueToKey(process->error()) + '\n' +
            "Return code: " + QString::number(process->exitCode()) + "\n\nstdout:\n" +
            process->readAllStandardOutput() + "\n\nstderr:\n" +
            process->readAllStandardError();
