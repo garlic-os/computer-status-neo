@@ -7,6 +7,7 @@
 #include <QMainWindow>
 #include <QProcess>
 #include <QPushButton>
+#include <QSettings>
 #include <QSharedPointer>
 #include <QString>
 #include <QTemporaryDir>
@@ -44,13 +45,14 @@ private slots:
 
 private:
     QSharedPointer<Ui::MainWindow> ui;
+    QSharedPointer<QSettings> settings;
     QSharedPointer<QProcess> runner;
     QSharedPointer<QTimer> runnerTimer;
     QSharedPointer<QProcess> consoleRunner;  // Separate process for commands that show the console
     QList<QPushButton *> buttonsList;
 
     // DEBUG
-    QSharedPointer<QFileSystemWatcher> qssWatcher;
+//    QSharedPointer<QFileSystemWatcher> qssWatcher;
 
     // Setup functions
     void setupRunner(QProcess *process);
