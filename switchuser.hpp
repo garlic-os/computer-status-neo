@@ -1,18 +1,15 @@
 #include <windows.h>
-#include <npapi.h>
 #include <wincred.h>
-#include <ntsecapi.h>
 #include <QDir>
 #include <QProcess>
 #include <QString>
 #include <QStringList>
 #include <QTextStream>
+#include <tuple>
 
-
-#include "./ui_mainwindow.h"
+#include "./ui_mainwindow.h"  // qApp
 
 #define CRED_PACK_PROTECTED_CREDENTIALS 0x1
-#define CRED_PACK_GENERIC_CREDENTIALS   0x4
 
 
 // Nightmare
@@ -25,8 +22,8 @@ class UserSwitcher {
     wchar_t *username = nullptr;
     // Domain field is unused; packed into the username as "domain\username" instead 🤷‍
     wchar_t *password = nullptr;
-    unsigned long domainSize = 0;
     unsigned long usernameSize = 0;
+    unsigned long domainSize = 0;
     unsigned long passwordSize = 0;
     STARTUPINFOW si;
     PROCESS_INFORMATION pi;
@@ -51,25 +48,32 @@ class UserSwitcher {
         return result;
     }
 
-
     // $ cp -r
     static void copyDir(QString src, QString dst) {
         QDir dir(src);
         if (!dir.exists()) {
             return;
         }
-        foreach (QString d, dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+        for (QString d : dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
             QString dst_path = dst + '/' + d;
             dir.mkpath(dst_path);
             copyDir(src + '/' + d, dst_path);
         }
-        foreach (QString f, dir.entryList(QDir::Files)) {
+        for (QString f : dir.entryList(QDir::Files)) {
             QFile::copy(src + '/' + f, dst + '/' + f);
         }
     }
 
+    static QString getCurrentDomain() {
+        QProcess process;
+        process.startCommand("whoami");
+        process.waitForFinished();
+        QString currentDomain = process.readLine().chopped(2);
+        return currentDomain.first(currentDomain.indexOf('\\') + 1);
+    }
 
-    QString promptForCredentials(const QString &currentDomain, HWND parentHWND) {
+
+    QString promptForCredentials(const QString &autofillUsername, HWND parentHWND) {
         unsigned long result;
         unsigned long authPackage = 0;
         CREDUI_INFOW uiInfo = {
@@ -81,8 +85,8 @@ class UserSwitcher {
         };
 
         result = CredPackAuthenticationBufferW(
-            CRED_PACK_GENERIC_CREDENTIALS,
-            currentDomain.toStdWString().data(),
+            CRED_PACK_PROTECTED_CREDENTIALS,
+            autofillUsername.toStdWString().data(),
             const_cast<wchar_t *>(L""),
             nullptr,
             &inAuthBufSize
@@ -97,8 +101,8 @@ class UserSwitcher {
         }
 
         result = CredPackAuthenticationBufferW(
-            CRED_PACK_GENERIC_CREDENTIALS,
-            currentDomain.toStdWString().data(),
+            CRED_PACK_PROTECTED_CREDENTIALS,
+            autofillUsername.toStdWString().data(),
             const_cast<wchar_t *>(L""),
             static_cast<unsigned char *>(inAuthBuf),
             &inAuthBufSize
@@ -192,7 +196,7 @@ class UserSwitcher {
 
 
   public:
-    UserSwitcher() {
+    explicit UserSwitcher() {
         ZeroMemory(&si, sizeof(si));
         ZeroMemory(&pi, sizeof(pi));
         si.cb = sizeof(si);
@@ -205,14 +209,12 @@ class UserSwitcher {
             CoTaskMemFree(outAuthBuf);
         }
         if (inAuthBuf != nullptr) {
-            SecureZeroMemory(inAuthBuf, inAuthBufSize);
             free(inAuthBuf);
         }
-        if (username != nullptr && usernameSize > 0) {
-            SecureZeroMemory(username, sizeof(username));
+        if (username != nullptr) {
             delete[] username;
         }
-        if (password != nullptr && passwordSize > 0) {
+        if (password != nullptr) {
             SecureZeroMemory(password, sizeof(password));
             delete[] password;
         }
@@ -224,14 +226,7 @@ class UserSwitcher {
     }
 
 
-    QString switchUser() {
-        QProcess process;
-        process.startCommand("whoami");
-        process.waitForFinished();
-
-        QString currentDomain = process.readLine().chopped(2);
-        currentDomain = currentDomain.first(currentDomain.indexOf('\\') + 1);
-
+    std::tuple<QString, QString> switchUser(QString autofillUsername) {
         // Get Computer Status's window handle to place the credential prompt
         // over the window (default is to put it in the middle of the screen)
         HWND hwnd = nullptr;
@@ -242,9 +237,11 @@ class UserSwitcher {
             }
         }
 
-        QString credResult = promptForCredentials(currentDomain, hwnd);
+        autofillUsername = autofillUsername.size() > 0 ? autofillUsername : getCurrentDomain();
+        QString credResult = promptForCredentials(autofillUsername, hwnd);
+        QString usernameToSave = username == nullptr ? "" : QString::fromStdWString(username);
         if (credResult != "Success") {
-            return credResult;
+            return { credResult, usernameToSave };
         }
 
         // Copy Computer Status Neo to your temp folder and grant the new user execute access.
@@ -256,14 +253,15 @@ class UserSwitcher {
         }
         copyDir(qApp->applicationDirPath(), dest.path());
 
+        QProcess process;
         process.startCommand(
             "icacls \"" + QDir::toNativeSeparators(dest.path()) +
-            "\" /grant " + QString::fromStdWString(username) +
+            "\" /grant " + usernameToSave +
             ":(OI)(CI)RX /T"
         );
         process.waitForFinished();
 
         QString command = dest.filePath(qApp->applicationFilePath().split('/').last());
-        return runAs(command);
+        return { runAs(command), usernameToSave };
     }
 };

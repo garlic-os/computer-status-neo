@@ -107,6 +107,10 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->setupUi(this);  // Boilerplate
         ui->inputComputer->setFocus();  // Autofocus query box
 
+        if (settings->contains("run-as-user")) {
+            on_buttonSwitchUser_clicked();
+        }
+
         // Set default computer query to self
         runner->startCommand("hostname");
         runner->waitForFinished();
@@ -156,7 +160,6 @@ MainWindow::~MainWindow() {}
 void MainWindow::setupRunner(QProcess *process) {
     // When process finishes
     QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, [=, this]() {
-        log << "Process finished";
         setButtonsEnabled(true);
         if (ui->textResult->toPlainText() == "Connecting...") {
             ui->textResult->setPlainText("(No output.)");
@@ -165,7 +168,6 @@ void MainWindow::setupRunner(QProcess *process) {
 
     // When process has new content in stdout
     QObject::connect(process, &QProcess::readyReadStandardOutput, this, [=, this]() {
-        log << "Process stdout";
         if (ui->textResult->toPlainText() == "Connecting...") {
             ui->textResult->setPlainText("");
         }
@@ -177,7 +179,6 @@ void MainWindow::setupRunner(QProcess *process) {
 
     // When process has new content in stderr
     QObject::connect(process, &QProcess::readyReadStandardError, this, [=, this]() {
-        log << "Process stderr";
         if (ui->textResult->toPlainText() == "Connecting...") {
             ui->textResult->setPlainText("");
         }
@@ -189,7 +190,6 @@ void MainWindow::setupRunner(QProcess *process) {
 
     // If something goes wrong
     QProcess::connect(process, &QProcess::errorOccurred, this, [=, this]() {
-        log << "Process failed";
         setButtonsEnabled(true);
         QString output = processErrorDump(process) + "\n---\n\n";
         if (ui->textResult->toPlainText() != "Connecting...") {
@@ -275,8 +275,8 @@ void MainWindow::executeToResultPane(const QString &command, bool remote, int ti
 
 
 void MainWindow::setButtonsEnabled(bool enabled) {
-    for (int i = 0; i < buttonsList.count(); i++) {
-        buttonsList.at(i)->setEnabled(enabled);
+    for (const auto button : buttonsList) {
+        button->setEnabled(enabled);
     }
 }
 
@@ -353,11 +353,15 @@ void MainWindow::on_buttonExecuteAction_clicked() {
 
 // Re-run Computer Status as a different user.
 void MainWindow::on_buttonSwitchUser_clicked() {
+    ui->textResult->setPlainText("");
     UserSwitcher userSwitcher;
-    QString result = userSwitcher.switchUser();
+    QString savedUsername = settings->value("run-as-user", "").toString();
+    auto [ result, newUsername ] = userSwitcher.switchUser(savedUsername);
     if (result == "Success") {
+        settings->setValue("run-as-user", newUsername);
         qApp->quit();
     } else {
+        settings->remove("run-as-user");
         ui->textResult->setPlainText(result);
     }
 }
