@@ -27,7 +27,7 @@ WMIC is deprecated as of Windows 10 21H1. With its removal coming at an unknown 
 ## Missing features
 - Lab tab
 - Reports tab
-- Run as different user
+- ~~Run as different user~~ working as of v0.2.0!
 - Documentation
 
 ## Roadmap
