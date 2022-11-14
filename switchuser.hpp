@@ -190,7 +190,6 @@ class UserSwitcher {
         if (!result && GetLastError() != ERROR_SUCCESS) {
             return errorMessage("CreateProcessWithLogonW");
         }
-
         return "Success";
     }
 
@@ -252,7 +251,6 @@ class UserSwitcher {
             dest.mkpath(".");
         }
         copyDir(qApp->applicationDirPath(), dest.path());
-
         QProcess process;
         process.startCommand(
             "icacls \"" + QDir::toNativeSeparators(dest.path()) +
@@ -261,6 +259,7 @@ class UserSwitcher {
         );
         process.waitForFinished();
 
+        // The Computer Status Neo.exe within the temporary directory
         QString command = dest.filePath(qApp->applicationFilePath().split('/').last());
         return { runAs(command), usernameToSave };
     }
