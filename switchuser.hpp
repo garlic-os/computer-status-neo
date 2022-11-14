@@ -168,15 +168,26 @@ class UserSwitcher {
     }
 
 
-    QString runAs(const QString command) {
-        QString realUsername = QString::fromStdWString(username);
-        QStringList parts = realUsername.split('\\');
-        QString domain = parts[0];
-        realUsername = parts[1];
-
+    /**
+     * @brief runAs - run a program as this->username.
+     * @pre this->username and this->password are not null.
+     * @param command - path to an executable
+     * @return Status message
+     */
+    QString runAs(const QString &command) {
+        if (username == nullptr) return "Uninitialized username";
+        QStringList parts = QString::fromStdWString(username).split('\\');
+        wchar_t *domain = nullptr;
+        if (parts.length() > 1) {
+            parts[1].toWCharArray(username);
+            parts[0].toWCharArray(domain);
+        } else {
+            parts[0].toWCharArray(username);
+            domain = const_cast<wchar_t *>(L"");
+        }
         unsigned long result = CreateProcessWithLogonW(
-            realUsername.toStdWString().data(),
-            domain.toStdWString().data(),
+            username,
+            domain,
             password,
             0,
             nullptr,
