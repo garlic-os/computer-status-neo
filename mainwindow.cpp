@@ -26,7 +26,7 @@
 #include "./switchuser.hpp"
 
 
-const QString processErrorDump(QProcess *process) {
+QString processErrorDump(QProcess *process) {
     QMetaEnum pErrorMeta = QMetaEnum::fromType<QProcess::ProcessError>();
     return "Command line: " + process->program() + ' ' + process->arguments().join(' ') + '\n' +
            "QProcess error code: " + pErrorMeta.valueToKey(process->error()) + '\n' +
@@ -303,7 +303,7 @@ void MainWindow::on_buttonPing_clicked() {
 
 // Start a remote desktop session on the target machine
 void MainWindow::on_buttonRemoteDesktop_clicked() {
-    QProcess::startDetached("mstsc /v:" + compName());
+    executeToResultPane("mstsc /v:" + compName());
 }
 
 // Offer to start a remote assistance session on the target machine
