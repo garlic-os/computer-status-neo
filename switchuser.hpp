@@ -49,7 +49,7 @@ class UserSwitcher {
     }
 
     // $ cp -r
-    static void copyDir(QString src, QString dst) {
+    static void copyDir(const QString &src, const QString &dst) {
         QDir dir(src);
         if (!dir.exists()) {
             return;
