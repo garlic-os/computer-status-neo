@@ -2,6 +2,7 @@
  * Computer Status Neo
  * https://github.com/the-garlic-os/computer-status-neo
  */
+// #define QSS_HOT_RELOAD
 
 #include <QDebug>
 #define log qDebug().nospace().noquote()
@@ -73,7 +74,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     settings(new QSettings(QSettings::UserScope, "Missouri S&T IT Help Desk", "Computer Status Neo")),
-//    qssWatcher(new QFileSystemWatcher),
     runner(new QProcess(this)),
     runnerTimer(new QTimer(this)),
     consoleRunner(new QProcess(this)) {
@@ -130,31 +130,41 @@ MainWindow::MainWindow(QWidget *parent) :
         loadTheme();
 
         // For development: hot reload stylesheets from FS
-//        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\common.qss");
-//        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\dark.qss");
-//        QFileSystemWatcher::connect(qssWatcher.data(), &QFileSystemWatcher::fileChanged, this, [=, this]() {
-//            log << "Loading common styles...";
-//            QFile themeFile("S:/Documents/Qt/ComputerStatusNeo/style/common.qss");
-//            themeFile.open(QFile::ReadOnly | QFile::Text);
-//            QTextStream themeFileStream(&themeFile);
-//            QString qss = themeFileStream.readAll();
-//            if (true) {
-//                log << "Loading dark theme overrides...";
-//                QFile themeFile("S:/Documents/Qt/ComputerStatusNeo/style/dark.qss");
-//                themeFile.open(QFile::ReadOnly | QFile::Text);
-//                QTextStream themeFileStream(&themeFile);
-//                qss += themeFileStream.readAll();
-//            }
-//            log << "Applying styles...";
-//            qApp->setStyleSheet(qss);
-//            log << "Stylesheets successfully applied.";
-//        });
+        #ifdef QSS_HOT_RELOAD
+            qssWatcher = QSharedPointer<QFileSystemWatcher>(new QFileSystemWatcher()),
+            enableQSSHotReload();
+        #endif
 
         buttonsList = this->findChildren<QPushButton *>();
 }
 
 
 MainWindow::~MainWindow() {}
+
+
+#ifdef QSS_HOT_RELOAD
+    void MainWindow::enableQSSHotReload() {
+        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\common.qss");
+        qssWatcher->addPath("S:\\Documents\\Qt\\ComputerStatusNeo\\style\\dark.qss");
+        QFileSystemWatcher::connect(qssWatcher.data(), &QFileSystemWatcher::fileChanged, this, [=, this]() {
+            log << "Loading common styles...";
+            QFile themeFile("S:/Documents/Qt/ComputerStatusNeo/style/common.qss");
+            themeFile.open(QFile::ReadOnly | QFile::Text);
+            QTextStream themeFileStream(&themeFile);
+            QString qss = themeFileStream.readAll();
+            if (true) {
+                log << "Loading dark theme overrides...";
+                QFile themeFile("S:/Documents/Qt/ComputerStatusNeo/style/dark.qss");
+                themeFile.open(QFile::ReadOnly | QFile::Text);
+                QTextStream themeFileStream(&themeFile);
+                qss += themeFileStream.readAll();
+            }
+            log << "Applying styles...";
+            qApp->setStyleSheet(qss);
+            log << "Stylesheets successfully applied.";
+        });
+    }
+#endif
 
 
 void MainWindow::setupRunner(QProcess *process) {

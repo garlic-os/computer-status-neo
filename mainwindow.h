@@ -13,8 +13,9 @@
 #include <QTemporaryDir>
 #include <QTimer>
 
-// DEBUG
-#include <QFileSystemWatcher>
+#ifdef QSS_HOT_RELOAD
+    #include <QFileSystemWatcher>
+#endif
 
 namespace Ui {
     class MainWindow;
@@ -51,8 +52,9 @@ private:
     QSharedPointer<QProcess> consoleRunner;  // Separate process for commands that show the console
     QList<QPushButton *> buttonsList;
 
-    // DEBUG
-//    QSharedPointer<QFileSystemWatcher> qssWatcher;
+    #ifdef QSS_HOT_RELOAD
+        QSharedPointer<QFileSystemWatcher> qssWatcher;
+    #endif
 
     // Setup functions
     void setupRunner(QProcess *process);
