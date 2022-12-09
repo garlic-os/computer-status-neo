@@ -25,6 +25,7 @@
 #include "./mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "./switchuser.hpp"
+#include "./doublehop.hpp"
 
 
 QString processErrorDump(QProcess *process) {
@@ -112,20 +113,14 @@ MainWindow::MainWindow(QWidget *parent) :
         }
 
         // Set default computer query to self
-        runner->startCommand("hostname");
-        runner->waitForFinished();
-        ui->inputComputer->setText(runner->readAllStandardOutput().chopped(2).toLower());
+        ui->inputComputer->setText(qgetenv("COMPUTERNAME"));
 
         // Set the "Running as" label
-        runner->startCommand("whoami");
-        runner->waitForFinished();
-        ui->labelRunningAs->setText("Running as: " + runner->readLine().chopped(2));
-        runner->readAllStandardOutput(); // Clear stdout for next process
-
-        // Attach event listeners and set configuration for the global process objects
-        setupRunner(runner.data());
-        setupRunnerTimer(runnerTimer.data(), runner.data());
-        setupConsoleRunner(consoleRunner.data());
+        QString domain = qgetenv("USERDOMAIN");
+        if (domain.size() > 0) {
+            domain += '\\';
+        }
+        ui->labelRunningAs->setText("Running as: " + domain + qgetenv("USERNAME"));
 
         loadTheme();
 
@@ -136,6 +131,11 @@ MainWindow::MainWindow(QWidget *parent) :
         #endif
 
         buttonsList = this->findChildren<QPushButton *>();
+
+        // Attach event listeners and set configuration for the global process objects
+        setupRunner(runner.data());
+        setupRunnerTimer(runnerTimer.data(), runner.data());
+        setupConsoleRunner(consoleRunner.data());
 }
 
 
@@ -232,7 +232,7 @@ void MainWindow::setupConsoleRunner(QProcess *process) {
     QProcess::connect(process, &QProcess::errorOccurred, this, [=, this]() {
         switch (process->exitCode()) {
             case -1073741510:
-                // Reverse Shell returns this when everything is fine 🤷
+                // Reverse Shell returns this as its OK code 🤷
                 return;
             default:
                 ui->textResult->setPlainText(
@@ -257,29 +257,64 @@ bool MainWindow::confirm(const QString &message, const QString &title) const {
 }
 
 
-// Run a remote command and show the output in a local Powershell window.
-void MainWindow::executeToNewWindow(const QString &command, bool remote) {
-    QString wrappedCommand = remote ?
-                "powershell -NoExit Invoke-Command -ComputerName " + compName() + " -ScriptBlock { " + command + " }" :
-                "powershell -NoExit " + command;
-    log << "Running command: " << wrappedCommand;
-    consoleRunner->startCommand(wrappedCommand);
-}
-
-
 // Run a remote command and print its output to the Result pane.
-void MainWindow::executeToResultPane(const QString &command, bool remote, int timeout_ms) {
+void MainWindow::executeToResultPane(const QString &command, ExecutionType executionType, int timeout_ms) {
     setButtonsEnabled(false);  // Will be re-enabled when the process finishes
     ui->textResult->setPlainText("Connecting...");
 
-    QString wrappedCommand = remote ?
-                "powershell Invoke-Command -ComputerName " + compName() + " -ScriptBlock { " + command + " }" :
-                "powershell " + command;
-    log << "Running command: " << wrappedCommand;
+    QString wrappedCommand;
+    switch (executionType) {
+        case LOCAL:
+            wrappedCommand = "powershell -Command & {" + command + "}";
+            log << "Running command locally: " << wrappedCommand;
+            break;
+        case REMOTE:
+            wrappedCommand = "powershell Invoke-Command -ComputerName " + compName() + " -ScriptBlock {" + command + "}";
+            log << "Running command remotely: " << wrappedCommand;
+            break;
+        case DOUBLE_HOP:
+            wrappedCommand = "powershell -Command \"" + doubleHopIfy(compName(), command) + "\"";
+            log << "Running command remotely with double-hop priveleges: " << wrappedCommand;
+    }
     runner->startCommand(wrappedCommand);
 
     if (timeout_ms >= 0) {
         runnerTimer->start(timeout_ms);
+    }
+}
+
+
+// Run a remote command and show the output in a local Powershell window.
+void MainWindow::executeToNewWindow(const QString &command, ExecutionType executionType) {
+    QString wrappedCommand;
+    switch (executionType) {
+        case LOCAL:
+            wrappedCommand = "powershell -NoExit -Command & {" + command + "}";
+            log << "Running command locally: " << wrappedCommand;
+            break;
+        case REMOTE:
+            wrappedCommand = "powershell -NoExit Invoke-Command -ComputerName " + compName() + " -ScriptBlock {" + command + "}";
+            log << "Running command remotely: " << wrappedCommand;
+            break;
+        case DOUBLE_HOP:
+            wrappedCommand = "powershell -NoExit -Command & {" + doubleHopIfy(compName(), command) + "}";
+            log << "Running command remotely with double-hop priveleges: " << wrappedCommand;
+    }
+    wrappedCommand = wrappedCommand.remove('\r').replace('\n', "`n");  // Escape newlines for powershell args
+
+    // Multiple console windows can be open at a time. As a design decision, only one
+    // QProcess object for this purpose is made ahead of time. When more than
+    // one is needed at a time, an additional process will be allocated and deallocated
+    // on the fly.
+    if (consoleRunner->state() == QProcess::NotRunning) {
+        consoleRunner->startCommand(command);
+    } else {
+        QProcess *extra = new QProcess(this);
+        setupConsoleRunner(extra);
+        consoleRunner->startCommand(command);
+        QObject::connect(extra, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, [=]() {
+            delete extra;
+        });
     }
 }
 
@@ -308,22 +343,22 @@ void MainWindow::on_inputComputer_returnPressed() {
 }
 
 void MainWindow::on_buttonPing_clicked() {
-    executeToResultPane("ping /n 1 " + compName());
+    executeToResultPane("ping /n 1 " + compName(), LOCAL);
 }
 
 // Start a remote desktop session on the target machine
 void MainWindow::on_buttonRemoteDesktop_clicked() {
-    executeToResultPane("mstsc /v:" + compName());
+    executeToResultPane("mstsc /v:" + compName(), LOCAL);
 }
 
 // Offer to start a remote assistance session on the target machine
 void MainWindow::on_buttonRemoteAssistance_clicked() {
-    executeToResultPane("msra /offerRA " + compName());
+    executeToResultPane("msra /offerRA " + compName(), LOCAL);
 }
 
 // Open Computer Management locally, for the target machine
 void MainWindow::on_buttonComputerManagement_clicked() {
-    executeToResultPane("compmgmt.msc /computer=" + compName());
+    executeToResultPane("compmgmt.msc /computer=" + compName(), LOCAL);
 }
 
 // Open the default c$ Admin Share of the target machine in Explorer
@@ -335,10 +370,11 @@ void MainWindow::on_buttonCDollarAdminShare_clicked() {
 
 // Look the target machine up in NetDB
 void MainWindow::on_buttonNetDB_clicked() {
-    QDesktopServices::openUrl(
-        "https://itweb.mst.edu/auth-cgi-bin/cgiwrap/netdb/view-host.pl?host=" +
-        compName() + ".managed.mst.edu"
-    );
+//    QDesktopServices::openUrl(
+//        "https://itweb.mst.edu/auth-cgi-bin/cgiwrap/netdb/view-host.pl?host=" +
+//        compName() + ".managed.mst.edu"
+//    );
+    executeToResultPane("whoami", DOUBLE_HOP);
 }
 
 // Look the target machine up in Local Administrator Password Tools
@@ -351,10 +387,10 @@ void MainWindow::on_buttonLAPS_clicked() {
 
 // Enter a Powershell session on the target machine
 void MainWindow::on_buttonReverseShell_clicked() {
-    executeToNewWindow("Enter-PSSession –ComputerName " + compName());
+    executeToNewWindow("Enter-PSSession –ComputerName " + compName(), LOCAL);
 }
 
-// Run the function corresponding to (the index of) the currently selected action
+// Run the function corresponding to (the index of) the currently Select-Objected action
 void MainWindow::on_buttonExecuteAction_clicked() {
     QString actionName = ui->dropdownActions->currentText();
     t_memberFunction action = actions[actionName.toStdString()];
@@ -387,12 +423,12 @@ void MainWindow::on_buttonClear_clicked() {
 
 // Run the `systeminfo` command
 void MainWindow::action_systemInfo() {
-    executeToResultPane("systeminfo /s " + compName());
+    executeToResultPane("systeminfo /s " + compName(), LOCAL);
 }
 
 // See who is logged in
 void MainWindow::action_queryUsers() {
-    executeToResultPane("query user /server:" + compName());
+    executeToResultPane("query user /server:" + compName(), LOCAL);
 }
 
 // Good ol' KMS
@@ -400,13 +436,14 @@ void MainWindow::action_reactivateWindows() {
     if (!confirm("Are you sure you want to reactivate this computer's Windows license?", compName() + ": Reactivate Windows License")) return;
     executeToNewWindow(
         "slmgr " + compName() + " /skms umad-kmsdfs-01.umad.umsystem.edu; "
-        "slmgr " + compName() + " /ato"
+        "slmgr " + compName() + " /ato",
+        LOCAL
     );
 }
 
 // See if the computer is on the AD
 void MainWindow::action_getADJoinStatus() {
-    executeToResultPane("dsregcmd /status", true);
+    executeToResultPane("dsregcmd /status", REMOTE);
 }
 
 // Run the Microsoft Office 365 reinstall script
@@ -415,13 +452,19 @@ void MainWindow::action_reinstallOffice365() {
     executeToNewWindow(
         "pushd \\\\minerfiles.mst.edu\\dfs\\software\\appdeploy\\office.365\\x64; "
         "setup.exe /configure configuration-test.xmlcd",
-        true
+        DOUBLE_HOP
     );
 }
 
 // List the printers that are installed on the machine
 void MainWindow::action_listInstalledPrinters() {
-    executeToResultPane("Get-WMIObject Win32_Printer -ComputerName " + compName() + " | Select Name, Location, Comment");
+    executeToResultPane(
+        "Get-WMIObject -Class Win32_Printer "
+        "-ComputerName " + compName() +
+        " | Sort-Object Name"
+         "| Select-Object Name, Location, Comment",
+        LOCAL
+    );
 }
 
 // Install a printer by name
@@ -433,18 +476,17 @@ void MainWindow::action_installPrinter() {
         QLineEdit::Normal, "", &ok, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
     if (ok && !printerName.isEmpty()) {
         executeToNewWindow(
-            "echo 'Adding printer \"" + printerName + "\" to computer \"" + compName() + "\" ...'; "
-            "Add-Printer"
-            " -ComputerName " + compName() +
-            " -IppURL '" + printerName + ".prn.mst.edu'; "
-            "echo Done.; "
-            "Get-WMIObject Win32_Printer -ComputerName " + compName() + " | Select Name, Location, Comment"
+            "Write-Output 'Adding printer \"" + printerName + "\"...'\n"
+            "Invoke-Item -Path \\\\winprint.mst.edu\\" + printerName + "\n"
+            "Write-Output Done.\n"
+            "Get-WMIObject -Class Win32_Printer | Sort-Object Name | Select-Object Name, Location, Comment",
+            DOUBLE_HOP
         );
     }
 }
 
 void MainWindow::action_abortShutdown() {
-    executeToResultPane("shutdown /a /m \\\\" + compName());
+    executeToResultPane("shutdown /a /m \\\\" + compName(), LOCAL);
 }
 
 void MainWindow::action_shutDown() {
@@ -454,7 +496,7 @@ void MainWindow::action_shutDown() {
         "Enter the timeout period (in seconds) before shutdown:",
         0, 0, 2147483647, 1, &ok);
     if (ok) {
-        executeToResultPane("shutdown /s /t " + QString::number(timeoutSeconds) + " /m \\\\" + compName());
+        executeToResultPane("shutdown /s /t " + QString::number(timeoutSeconds) + " /m \\\\" + compName(), LOCAL);
     }
 }
 
@@ -465,17 +507,24 @@ void MainWindow::action_restart() {
         "Enter the timeout period (in seconds) before restart:",
         0, 0, 2147483647, 1, &ok);
     if (ok) {
-        executeToResultPane("shutdown /r /t " + QString::number(timeoutSeconds) + " /m \\\\" + compName());
+        executeToResultPane("shutdown /r /t " + QString::number(timeoutSeconds) + " /m \\\\" + compName(), LOCAL);
     }
 }
 
 void MainWindow::action_sfcDISM() {
-    executeToNewWindow("sfc /scannow; dism /online /cleanup-image /restorehealth", true);
+    executeToNewWindow("sfc /scannow; dism /online /cleanup-image /restorehealth", REMOTE);
 }
 
 void MainWindow::action_listInstalledSoftware() {
     // this command takes a while
-    executeToResultPane("Get-WmiObject Win32_Product -ComputerName " + compName() + " | Select Name", false, DEFAULT_TIMEOUT_MS * 2);
+    executeToResultPane(
+        "Get-WmiObject -Class Win32_Product "
+        "-ComputerName " + compName() +
+        " | Sort-Object Name"
+        " | Select-Object Name",
+        LOCAL,
+        DEFAULT_TIMEOUT_MS * 4
+    );
 }
 
 // Run the AppsAnywhere uninstall script
@@ -496,7 +545,8 @@ void MainWindow::action_listNetworkDrives() {
     executeToResultPane(
         "Get-WmiObject Win32_MappedLogicalDisk"
         " -ComputerName " + compName() +
-        " | Select PSComputerName, Name, ProviderName"
+        " | Select-Object PSComputerName, Name, ProviderName",
+        LOCAL
     );
 }
 
@@ -505,14 +555,26 @@ void MainWindow::action_listPhysicalDrives() {
         "Get-WmiObject -Class MSFT_PhysicalDisk"
         " -ComputerName " + compName() +
         " -Namespace root\\Microsoft\\Windows\\Storage"
-        " | Select FriendlyName"
+        " | Sort-Object FriendlyName"
+        " | Select-Object FriendlyName",
+        LOCAL
     );
 }
 
 void MainWindow::action_getSerialNumber() {
-    executeToResultPane("Get-WmiObject win32_bios | Select SerialNumber");
+    executeToResultPane(
+        "Get-WmiObject -Class win32_bios "
+        "-ComputerName " + compName() +
+        " | Select-Object SerialNumber",
+        LOCAL
+    );
 }
 
 void MainWindow::action_getBIOSVersion() {
-    executeToResultPane("Get-WmiObject win32_bios | Select Name");
+    executeToResultPane(
+        "Get-WmiObject -Class win32_bios "
+        "-ComputerName " + compName() +
+        " | Select-Object Name",
+        LOCAL
+    );
 }

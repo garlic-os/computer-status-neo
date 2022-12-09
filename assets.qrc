@@ -28,5 +28,7 @@
         <file>icon/dark/transparent.png</file>
         <file>icon/dark/window_grip.png</file>
         <file>icon/light/branch_open.png</file>
+        <file>script/double-hop.min.ps1</file>
+        <file>script/double-hop.ps1</file>
     </qresource>
 </RCC>

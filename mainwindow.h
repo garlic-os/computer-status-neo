@@ -17,6 +17,8 @@
     #include <QFileSystemWatcher>
 #endif
 
+enum ExecutionType { LOCAL, REMOTE, DOUBLE_HOP };
+
 namespace Ui {
     class MainWindow;
 }
@@ -64,8 +66,8 @@ private:
     const static int DEFAULT_TIMEOUT_MS = 1000 * 10;  // 10 seconds
 
     // Helper functions
-    void executeToNewWindow(const QString &command, bool remote=false);
-    void executeToResultPane(const QString &command, bool remote=false,
+    void executeToNewWindow(const QString &command, ExecutionType executionType);
+    void executeToResultPane(const QString &command, ExecutionType executionType,
                              int timeout_ms=DEFAULT_TIMEOUT_MS);
     inline const QString compName() const;
     bool confirm(const QString &message, const QString &title) const;
