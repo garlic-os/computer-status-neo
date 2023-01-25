@@ -1,6 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+// For development
+//#define QSS_HOT_RELOAD
+
 #include <string>
 #include <unordered_map>
 #include <QList>
@@ -56,6 +59,7 @@ private:
 
     #ifdef QSS_HOT_RELOAD
         QSharedPointer<QFileSystemWatcher> qssWatcher;
+        void enableQSSHotReload();
     #endif
 
     // Setup functions
