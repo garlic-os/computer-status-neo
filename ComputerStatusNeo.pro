@@ -50,5 +50,3 @@ LIBS += \
         "C:/Windows/System32/ole32.dll" \
         "C:/Windows/System32/propsys.dll" \
         "C:/Windows/System32/taskschd.dll"
-
-INCLUDEPATH += "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.34.31933/atlmfc/include"
