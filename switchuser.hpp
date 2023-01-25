@@ -1,5 +1,5 @@
-#ifndef SWTICHUSER_HPP
-#define SWTICHUSER_HPP
+#ifndef SWITCHUSER_HPP
+#define SWITCHUSER_HPP
 
 #include <windows.h>
 #include <wincred.h>
@@ -311,4 +311,4 @@ class UserSwitcher {
 };
 
 
-#endif  // SWTICHUSER_HPP
+#endif  // SWITCHUSER_HPP
