@@ -68,8 +68,13 @@ VARIANT nullVariant() {
 
 
 VARIANT strVariant(const QString &str) {
+    // InitVariantFromString doesn't exist in MinGW 🤷
     VARIANT var;
-    InitVariantFromString(str.toStdWString().c_str(), &var);
+    InitVariantFromBuffer(
+        str.toStdWString().c_str(),
+        str.toUtf8().size(),
+        &var
+    );
     return var;
 }
 
