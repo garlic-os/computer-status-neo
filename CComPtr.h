@@ -97,27 +97,27 @@ public:
 public:
 	operator INTERFACE*() const
     {
-        ASSERT(m_Ptr != nullptr);
+        assert(m_Ptr != nullptr);
         return m_Ptr;
     }
 	INTERFACE& operator*() const
     {
-        ASSERT(m_Ptr != nullptr);
+        assert(m_Ptr != nullptr);
 		return *m_Ptr;
     }
 	INTERFACE** operator&()
     {
-        ASSERT(m_Ptr != nullptr);
+        assert(m_Ptr != nullptr);
         return &m_Ptr;
     }
 	INTERFACE* operator->() const
 	{
-        ASSERT(m_Ptr != nullptr);
+        assert(m_Ptr != nullptr);
 		return m_Ptr;
 	}
 	INTERFACE* operator=(INTERFACE* lPtr)
 	{
-        ASSERT(lPtr != nullptr);
+        assert(lPtr != nullptr);
 		if (IsEqualObject(lPtr))
 		{
 			return m_Ptr;
@@ -132,12 +132,12 @@ public:
         assert(pIUnknown != nullptr);
         assert(piid != nullptr);
         pIUnknown->QueryInterface(*piid, (void**)&m_Ptr);
-        ASSERT(m_Ptr != nullptr);
+        assert(m_Ptr != nullptr);
 		return m_Ptr;
     }
 	INTERFACE* operator=(const CComPtr<INTERFACE, piid>& RefComPtr)
 	{
-        ASSERT(&RefComPtr != nullptr);
+        assert(&RefComPtr != nullptr);
 		m_Ptr = (INTERFACE*)RefComPtr;
 
 		if (m_Ptr)
