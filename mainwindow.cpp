@@ -24,6 +24,7 @@
 #include "./mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "./switchuser.hpp"
+//#include "./logservice.hpp"
 #include "./doublehop.hpp"
 
 
@@ -274,11 +275,17 @@ void MainWindow::executeToResultPane(const QString &command, ExecutionType execu
             log << "Running command remotely: " << wrappedCommand;
             break;
         case DOUBLE_HOP:
-            wrappedCommand = "powershell -Command \"" + doubleHopIfy(compName(), command) + "\"";
-            log << "Running command remotely with double-hop priveleges: " << wrappedCommand;
-    }
-    runner->startCommand(wrappedCommand);
+            log << "Running command remotely with double-hop priveleges: " << command;
+//          QSharedPointer<LogService> outputService = doubleHop(compName(), command);
+            doubleHop(compName(), command);
+//          QObject::connect(outputService.data(), LogService::logEvent, this, [=, this]() {
 
+//          });
+//          taskThread->start();
+    }
+
+    if (wrappedCommand.length() == 0) return;
+    runner->startCommand(wrappedCommand);
     if (timeout_ms >= 0) {
         runnerTimer->start(timeout_ms);
     }
@@ -297,9 +304,9 @@ void MainWindow::executeToNewWindow(const QString &command, ExecutionType execut
             wrappedCommand = "powershell -NoExit Invoke-Command -ComputerName " + compName() + " -ScriptBlock {" + command + "}";
             log << "Running command remotely: " << wrappedCommand;
             break;
-        case DOUBLE_HOP:
-            wrappedCommand = "powershell -NoExit -Command & {" + doubleHopIfy(compName(), command) + "}";
-            log << "Running command remotely with double-hop priveleges: " << wrappedCommand;
+//        case DOUBLE_HOP:
+//            wrappedCommand = "powershell -NoExit -Command & {" + doubleHopIfy(compName(), command) + "}";
+//            log << "Running command remotely with double-hop priveleges: " << wrappedCommand;
     }
     wrappedCommand = wrappedCommand.remove('\r').replace('\n', "`n");  // Escape newlines for powershell args
 

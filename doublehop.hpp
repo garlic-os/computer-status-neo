@@ -18,6 +18,7 @@
 #include <propvarutil.h>
 #include <taskschd.h>
 #include "./CComPtr.h"  // MinGW-compatible polyfill for MSVC's COM Object Smart Pointer
+//#include ".logservice.hpp"
 
 
 typedef enum _TASK_RUN_FLAGS {
@@ -93,7 +94,8 @@ bool touch(const QString &path) {
 // Splits the double hop into two single hops by loading the command into
 // a task in Task Scheduler, which changes what Windows thinks is the origin
 // of the command from your computer to the remote computer.
-QSharedPointer<QThread> doubleHop(const QString &computerName, const QString &command) {
+//QSharedPointer<LogService> doubleHop(const QString &computerName, const QString &command) {
+void doubleHop(const QString &computerName, const QString &command) {
     HRESULT result;
     wchar_t *taskName = wide(L"Computer Status Neo");
     QString outputFile = "comp-stat-neo-test.log";
@@ -171,28 +173,52 @@ QSharedPointer<QThread> doubleHop(const QString &computerName, const QString &co
         throw errorMessage("IRegisteredTask::RunEx");
     }
 
-    return QSharedPointer<QThread>(
-        QThread::create([=]() {
-            auto file = QSharedPointer<QFile>(new QFile(outputPathRemote));
-            file->open(QFile::ReadOnly);
-            QFileSystemWatcher outputWatcher;
-            outputWatcher.addPath(outputPathRemote);
-            QFileSystemWatcher::connect(&outputWatcher, &QFileSystemWatcher::fileChanged, [=]() {
-                log << file->readAll();
-            });
+//    auto logService = QSharedPointer<LogService>(new LogService(nullptr));
 
-            TASK_STATE state;
-            HRESULT result;
-            QTimer timer;
-            do {
-                result = task->get_State(&state);
-                if (result != S_OK) {
-                    throw errorMessage("IRegisteredTask::get_State");
-                }
-            } while (state == TASK_STATE_RUNNING);
-            file->close();
-        })
-    );
+//    auto taskThread = QSharedPointer<QThread>(
+//        QThread::create([=]() {
+//            auto file = QSharedPointer<QFile>(new QFile(outputPathRemote));
+//            file->open(QFile::ReadOnly);
+//            QFileSystemWatcher outputWatcher;
+//            outputWatcher.addPath(outputPathRemote);
+//            QFileSystemWatcher::connect(&outputWatcher, &QFileSystemWatcher::fileChanged, [=]() {
+//                log << file->readAll();
+//                logService->logEvent(file->readAll());
+//            });
+
+//            TASK_STATE state;
+//            HRESULT result;
+//            QTimer timer;  // TODO: use a timer instead of a while loop
+//            do {
+//                result = task->get_State(&state);
+//                if (result != S_OK) {
+//                    throw errorMessage("IRegisteredTask::get_State");
+//                }
+//            } while (state == TASK_STATE_RUNNING);
+//            file->close();
+//        })
+//    );
+
+//    taskThread->start();
+//    return logService;
+
+
+    auto file = QSharedPointer<QFile>(new QFile(outputPathRemote));
+    file->open(QFile::ReadOnly);
+    QFileSystemWatcher outputWatcher;
+    outputWatcher.addPath(outputPathRemote);
+    QFileSystemWatcher::connect(&outputWatcher, &QFileSystemWatcher::fileChanged, [=]() {
+        log << file->readAll();
+    });
+
+    TASK_STATE state;
+    do {
+        result = task->get_State(&state);
+        if (result != S_OK) {
+            throw errorMessage("IRegisteredTask::get_State");
+        }
+    } while (state == TASK_STATE_RUNNING);
+    file->close();
 }
 
 

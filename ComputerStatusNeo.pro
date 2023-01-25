@@ -30,6 +30,7 @@ SOURCES += \
 HEADERS += \
         CComPtr.h \
         doublehop.hpp \
+        logservice.hpp \
         mainwindow.h
 
 FORMS += \
