@@ -56,12 +56,12 @@ class UserSwitcher {
         if (!dir.exists()) {
             return;
         }
-        for (QString d : dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+        for (const QString &d : dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
             QString dst_path = dst + '/' + d;
             dir.mkpath(dst_path);
             copyDir(src + '/' + d, dst_path);
         }
-        for (QString f : dir.entryList(QDir::Files)) {
+        for (const QString &f : dir.entryList(QDir::Files)) {
             QFile::copy(src + '/' + f, dst + '/' + f);
         }
     }
