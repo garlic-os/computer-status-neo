@@ -89,9 +89,9 @@ MainWindow::MainWindow(QWidget *parent) :
             { "Query users", &MainWindow::action_queryUsers },
             { "Reactivate Windows license", &MainWindow::action_reactivateWindows },
             { "Get AD join status", &MainWindow::action_getADJoinStatus },
-            { "Reinstall Office 365", &MainWindow::action_reinstallOffice365 },
+//            { "Reinstall Office 365", &MainWindow::action_reinstallOffice365 },
             { "List installed printers", &MainWindow::action_listInstalledPrinters },
-            { "Install printer...", &MainWindow::action_installPrinter },
+//            { "Install printer...", &MainWindow::action_installPrinter },
             { "Abort shutdown", &MainWindow::action_abortShutdown },
             { "Shut down...", &MainWindow::action_shutDown },
             { "Restart...", &MainWindow::action_restart },
@@ -274,10 +274,10 @@ void MainWindow::executeToResultPane(const QString &command, ExecutionType execu
             wrappedCommand = "powershell Invoke-Command -ComputerName " + compName() + " -ScriptBlock {" + command + "}";
             log << "Running command remotely: " << wrappedCommand;
             break;
-        case DOUBLE_HOP:
-            log << "Running command remotely with double-hop priveleges: " << command;
+//        case DOUBLE_HOP:
+//            log << "Running command remotely with double-hop priveleges: " << command;
 //          QSharedPointer<LogService> outputService = doubleHop(compName(), command);
-            doubleHop(compName(), command);
+//            doubleHop(compName(), command);
 //          QObject::connect(outputService.data(), LogService::logEvent, this, [=, this]() {
 
 //          });
@@ -455,14 +455,14 @@ void MainWindow::action_getADJoinStatus() {
 }
 
 // Run the Microsoft Office 365 reinstall script
-void MainWindow::action_reinstallOffice365() {
-    if (!confirm("Are you sure you want to reinstall Office 365 on this computer?", compName() + ": Reinstall Microsoft Office 365")) return;
-    executeToNewWindow(
-        "pushd \\\\minerfiles.mst.edu\\dfs\\software\\appdeploy\\office.365\\x64; "
-        "setup.exe /configure configuration-test.xmlcd",
-        DOUBLE_HOP
-    );
-}
+//void MainWindow::action_reinstallOffice365() {
+//    if (!confirm("Are you sure you want to reinstall Office 365 on this computer?", compName() + ": Reinstall Microsoft Office 365")) return;
+//    executeToNewWindow(
+//        "pushd \\\\minerfiles.mst.edu\\dfs\\software\\appdeploy\\office.365\\x64; "
+//        "setup.exe /configure configuration-test.xmlcd",
+//        DOUBLE_HOP
+//    );
+//}
 
 // List the printers that are installed on the machine
 void MainWindow::action_listInstalledPrinters() {
@@ -476,22 +476,22 @@ void MainWindow::action_listInstalledPrinters() {
 }
 
 // Install a printer by name
-void MainWindow::action_installPrinter() {
-    bool ok;
-    QString printerName = QInputDialog::getText(
-        this, compName() + ": Install printer",
-        "Enter the name of the printer to install:",
-        QLineEdit::Normal, "", &ok, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-    if (ok && !printerName.isEmpty()) {
-        executeToNewWindow(
-            "Write-Output 'Adding printer \"" + printerName + "\"...'\n"
-            "Invoke-Item -Path \\\\winprint.mst.edu\\" + printerName + "\n"
-            "Write-Output Done.\n"
-            "Get-WMIObject -Class Win32_Printer | Sort-Object Name | Select-Object Name, Location, Comment",
-            DOUBLE_HOP
-        );
-    }
-}
+//void MainWindow::action_installPrinter() {
+//    bool ok;
+//    QString printerName = QInputDialog::getText(
+//        this, compName() + ": Install printer",
+//        "Enter the name of the printer to install:",
+//        QLineEdit::Normal, "", &ok, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+//    if (ok && !printerName.isEmpty()) {
+//        executeToNewWindow(
+//            "Write-Output 'Adding printer \"" + printerName + "\"...'\n"
+//            "Invoke-Item -Path \\\\winprint.mst.edu\\" + printerName + "\n"
+//            "Write-Output Done.\n"
+//            "Get-WMIObject -Class Win32_Printer | Sort-Object Name | Select-Object Name, Location, Comment",
+//            DOUBLE_HOP
+//        );
+//    }
+//}
 
 void MainWindow::action_abortShutdown() {
     executeToResultPane("shutdown /a /m \\\\" + compName(), LOCAL);

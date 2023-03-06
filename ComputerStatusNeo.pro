@@ -28,9 +28,6 @@ SOURCES += \
         switchuser.hpp
 
 HEADERS += \
-        CComPtr.h \
-        doublehop.hpp \
-        logservice.hpp \
         mainwindow.h
 
 FORMS += \

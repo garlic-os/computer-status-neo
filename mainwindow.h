@@ -20,7 +20,7 @@
     #include <QFileSystemWatcher>
 #endif
 
-enum ExecutionType { LOCAL, REMOTE, DOUBLE_HOP };
+enum ExecutionType { LOCAL, REMOTE, /*DOUBLE_HOP*/ };
 
 namespace Ui {
     class MainWindow;
@@ -87,9 +87,9 @@ private:
     void action_queryUsers();
     void action_reactivateWindows();
     void action_getADJoinStatus();
-    void action_reinstallOffice365();
+//    void action_reinstallOffice365();
     void action_listInstalledPrinters();
-    void action_installPrinter();
+//    void action_installPrinter();
     void action_abortShutdown();
     void action_shutDown();
     void action_restart();
