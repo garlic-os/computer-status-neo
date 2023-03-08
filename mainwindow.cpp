@@ -24,8 +24,6 @@
 #include "./mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "./switchuser.hpp"
-//#include "./logservice.hpp"
-#include "./doublehop.hpp"
 
 
 QString processErrorDump(QProcess *process) {
@@ -274,14 +272,6 @@ void MainWindow::executeToResultPane(const QString &command, ExecutionType execu
             wrappedCommand = "powershell Invoke-Command -ComputerName " + compName() + " -ScriptBlock {" + command + "}";
             log << "Running command remotely: " << wrappedCommand;
             break;
-//        case DOUBLE_HOP:
-//            log << "Running command remotely with double-hop priveleges: " << command;
-//          QSharedPointer<LogService> outputService = doubleHop(compName(), command);
-//            doubleHop(compName(), command);
-//          QObject::connect(outputService.data(), LogService::logEvent, this, [=, this]() {
-
-//          });
-//          taskThread->start();
     }
 
     if (wrappedCommand.length() == 0) return;
@@ -304,9 +294,6 @@ void MainWindow::executeToNewWindow(const QString &command, ExecutionType execut
             wrappedCommand = "powershell -NoExit Invoke-Command -ComputerName " + compName() + " -ScriptBlock {" + command + "}";
             log << "Running command remotely: " << wrappedCommand;
             break;
-//        case DOUBLE_HOP:
-//            wrappedCommand = "powershell -NoExit -Command & {" + doubleHopIfy(compName(), command) + "}";
-//            log << "Running command remotely with double-hop priveleges: " << wrappedCommand;
     }
     wrappedCommand = wrappedCommand.remove('\r').replace('\n', "`n");  // Escape newlines for powershell args
 
@@ -378,11 +365,10 @@ void MainWindow::on_buttonCDollarAdminShare_clicked() {
 
 // Look the target machine up in NetDB
 void MainWindow::on_buttonNetDB_clicked() {
-//    QDesktopServices::openUrl(
-//        "https://itweb.mst.edu/auth-cgi-bin/cgiwrap/netdb/view-host.pl?host=" +
-//        compName() + ".managed.mst.edu"
-//    );
-    executeToResultPane("whoami", DOUBLE_HOP);
+    QDesktopServices::openUrl(
+        "https://itweb.mst.edu/auth-cgi-bin/cgiwrap/netdb/view-host.pl?host=" +
+        compName() + ".managed.mst.edu"
+    );
 }
 
 // Look the target machine up in Local Administrator Password Tools
@@ -546,7 +532,6 @@ void MainWindow::action_listInstalledSoftware() {
 //    if (!confirm("Are you sure to want to install AppsAnywhere?", compName() + ": Install AppsAnywhere")) return;
 //    QProcess::startDetached("powershell -c \"Enable-WSManCredSSP -Role Client -DelegateComputer" + compName() + "\"");  // TODO: Race condition. Wait for this to finish before continuing
 //    executeToNewWindow("\\\\minerfiles.mst.edu\\dfs\\software\\itwindist\\sccm\\Packages\\AppsAnywhere.1_6_0\\Install.cmd", true, "/c");
-//    // https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/solving-double-hop-remoting-with-credssp
 //}
 
 void MainWindow::action_listNetworkDrives() {
