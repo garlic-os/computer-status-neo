@@ -43,6 +43,4 @@ RESOURCES += assets.qrc \
 
 win32:RC_ICONS += computer_on_fire.ico
 
-LIBS += \
-        "C:/Windows/System32/credui.dll" \
-        "C:/Windows/System32/ole32.dll"
+LIBS += "C:/Windows/System32/credui.dll"

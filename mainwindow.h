@@ -20,6 +20,8 @@
     #include <QFileSystemWatcher>
 #endif
 
+enum ExecutionType { LOCAL, REMOTE, /*DOUBLE_HOP*/ };
+
 namespace Ui {
     class MainWindow;
 }
@@ -68,8 +70,8 @@ private:
     const static int DEFAULT_TIMEOUT_MS = 1000 * 10;  // 10 seconds
 
     // Helper functions
-    void executeToNewWindow(const QString &command, bool remote=false);
-    void executeToResultPane(const QString &command, bool remote=false,
+    void executeToNewWindow(const QString &command, ExecutionType executionType);
+    void executeToResultPane(const QString &command, ExecutionType executionType,
                              int timeout_ms=DEFAULT_TIMEOUT_MS);
     inline const QString compName() const;
     bool confirm(const QString &message, const QString &title) const;
@@ -85,9 +87,9 @@ private:
     void action_queryUsers();
     void action_reactivateWindows();
     void action_getADJoinStatus();
-    void action_reinstallOffice365();
+//    void action_reinstallOffice365();
     void action_listInstalledPrinters();
-    void action_installPrinter();
+//    void action_installPrinter();
     void action_abortShutdown();
     void action_shutDown();
     void action_restart();

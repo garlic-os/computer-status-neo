@@ -3,7 +3,7 @@ _WMIC-less rewrite of Computer Status Tool © 2015 Chris Bucher_
 
 WMIC is deprecated as of Windows 10 21H1. With its removal coming at an unknown but inevitable date, he and I decided we need to move Computer Status Tool away from WMIC. And also that it would be better to re-write it from the ground up while we're at it.
 
-**This project is a work in progress with no guarantee of stability. There are bugs and missing features.**
+**The Lab and Reports tab are not implemented because I don't know of a team that uses them. Let me know if yours does.**
 
 ## Advantages
 - App doesn't freeze while running a command
@@ -13,10 +13,8 @@ WMIC is deprecated as of Windows 10 21H1. With its removal coming at an unknown 
 ## New actions
 - Reverse Shell
 - Reactivate Windows license
-- Reinstall Office 365
 - Get Azure AD join status
 - List installed printers
-- Install a printer by name
 - SFC & DISM
 - Get serial number
 - Get BIOS version
