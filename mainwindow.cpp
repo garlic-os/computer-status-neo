@@ -400,6 +400,7 @@ void MainWindow::on_buttonSwitchUser_clicked() {
     if (result == "Success") {
         settings->setValue("run-as-user", newUsername);
         qApp->quit();
+        exit(0);
     } else {
         settings->remove("run-as-user");
         ui->textResult->setPlainText(result);
