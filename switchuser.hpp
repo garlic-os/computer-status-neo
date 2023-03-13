@@ -183,23 +183,21 @@ class UserSwitcher {
 
         // Extract a username that goes "domain\username" into separate
         // domain and username strings.
-        // If it doesn't have a domain part, the domain string will be
-        // left empty.
+        // If it doesn't have a domain part, just leave the domain string empty.
         QStringList parts = QString::fromStdWString(username).split('\\');
-        wchar_t *domain = nullptr;
+        QString realUsername = "";
+        QString realDomain = "";
         if (parts.length() > 1) {
-            parts[1].toWCharArray(username);
-            parts[0].toWCharArray(domain);
+            realUsername = parts[1];
+            realDomain = parts[0];
         } else {
-            parts[0].toWCharArray(username);
-            domain = const_cast<wchar_t *>(L"");
+            realUsername = parts[0];
         }
 
-        // Run the given command with the credentials in
-        // this->username and this->password.
+        // Run the given command as realDomain\realUsername:password.
         unsigned long result = CreateProcessWithLogonW(
-            username,
-            domain,
+            realUsername.toStdWString().c_str(),
+            realDomain.toStdWString().c_str(),
             password,
             0,
             nullptr,
