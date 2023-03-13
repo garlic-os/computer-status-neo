@@ -1,11 +1,14 @@
+#ifndef SWITCHUSER_HPP
+#define SWITCHUSER_HPP
+
 #include <windows.h>
 #include <wincred.h>
+#include <tuple>
 #include <QDir>
 #include <QProcess>
 #include <QString>
 #include <QStringList>
 #include <QTextStream>
-#include <tuple>
 
 #include "./ui_mainwindow.h"  // qApp
 
@@ -20,7 +23,6 @@ class UserSwitcher {
     unsigned long inAuthBufSize = 0;
     unsigned long outAuthBufSize = 0;
     wchar_t *username = nullptr;
-    // Domain field is unused; packed into the username as "domain\username" instead 🤷‍
     wchar_t *password = nullptr;
     unsigned long usernameSize = 0;
     unsigned long domainSize = 0;
@@ -36,7 +38,7 @@ class UserSwitcher {
             nullptr,
             GetLastError(),
             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-            reinterpret_cast<wchar_t*>(&message),
+            reinterpret_cast<wchar_t *>(&message),
             0,
             nullptr
         );
@@ -54,22 +56,14 @@ class UserSwitcher {
         if (!dir.exists()) {
             return;
         }
-        for (QString d : dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+        for (const QString &d : dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
             QString dst_path = dst + '/' + d;
             dir.mkpath(dst_path);
             copyDir(src + '/' + d, dst_path);
         }
-        for (QString f : dir.entryList(QDir::Files)) {
+        for (const QString &f : dir.entryList(QDir::Files)) {
             QFile::copy(src + '/' + f, dst + '/' + f);
         }
-    }
-
-    static QString getCurrentDomain() {
-        QProcess process;
-        process.startCommand("whoami");
-        process.waitForFinished();
-        QString currentDomain = process.readLine().chopped(2);
-        return currentDomain.first(currentDomain.indexOf('\\') + 1);
     }
 
 
@@ -84,6 +78,7 @@ class UserSwitcher {
             .hbmBanner = nullptr
         };
 
+        // Load inAuthBufSize with the needed auth buffer size...
         result = CredPackAuthenticationBufferW(
             CRED_PACK_PROTECTED_CREDENTIALS,
             autofillUsername.toStdWString().data(),
@@ -95,11 +90,13 @@ class UserSwitcher {
             return errorMessage("CredPackAuthenticationBufferW Size Check");
         }
 
+        // Allocate memory for the auth buffer...
         inAuthBuf = malloc(inAuthBufSize);
         if (inAuthBuf == nullptr) {
             return errorMessage("malloc");
         }
 
+        // Create the auth buffer...
         result = CredPackAuthenticationBufferW(
             CRED_PACK_PROTECTED_CREDENTIALS,
             autofillUsername.toStdWString().data(),
@@ -111,6 +108,8 @@ class UserSwitcher {
             return errorMessage("CredPackAuthenticationBufferW");
         }
 
+        // Prompt the user for credentials to run Comp Stat as.
+        // Use the auth buffer to autofill information, like the current user's domain.
         result = CredUIPromptForWindowsCredentialsW(
             &uiInfo,
             0,
@@ -131,6 +130,7 @@ class UserSwitcher {
                 return errorMessage("CredUIPromptForWindowsCredentialsW");
         }
 
+        // Get the needed username, domain, and password sizes...
         result = CredUnPackAuthenticationBufferW(
             0x1,
             outAuthBuf,
@@ -146,9 +146,12 @@ class UserSwitcher {
             return errorMessage("CredUnPackAuthenticationBufferW Size Check");
         }
 
+        // Allocate memory for the username and password...
+        // (domain is unused)
         username = new wchar_t[usernameSize];
         password = new wchar_t[passwordSize];
 
+        // Extract the credentials from the encrypted buffer.
         result = CredUnPackAuthenticationBufferW(
             0x1,
             outAuthBuf,
@@ -175,19 +178,26 @@ class UserSwitcher {
      * @return Status message
      */
     QString runAs(const QString &command) {
-        if (username == nullptr) return "Uninitialized username";
+        if (username == nullptr) return "Null/Uninitialized username";
+        if (password == nullptr) return "Null/Uninitialized password";
+
+        // Extract a username that goes "domain\username" into separate
+        // domain and username strings.
+        // If it doesn't have a domain part, just leave the domain string empty.
         QStringList parts = QString::fromStdWString(username).split('\\');
-        wchar_t *domain = nullptr;
+        QString realUsername = "";
+        QString realDomain = "";
         if (parts.length() > 1) {
-            parts[1].toWCharArray(username);
-            parts[0].toWCharArray(domain);
+            realUsername = parts[1];
+            realDomain = parts[0];
         } else {
-            parts[0].toWCharArray(username);
-            domain = const_cast<wchar_t *>(L"");
+            realUsername = parts[0];
         }
+
+        // Run the given command as realDomain\realUsername:password.
         unsigned long result = CreateProcessWithLogonW(
-            username,
-            domain,
+            realUsername.toStdWString().c_str(),
+            realDomain.toStdWString().c_str(),
             password,
             0,
             nullptr,
@@ -207,6 +217,9 @@ class UserSwitcher {
 
   public:
     explicit UserSwitcher() {
+        // Initialize two structs we're not going to use.
+        // CreateProcessWithLogonW throws a fit if you don't
+        // give these to it.
         ZeroMemory(&si, sizeof(si));
         ZeroMemory(&pi, sizeof(pi));
         si.cb = sizeof(si);
@@ -214,20 +227,31 @@ class UserSwitcher {
 
 
     virtual ~UserSwitcher() {
+        // Wipe and free the variables that contain credentials.
         if (outAuthBuf != nullptr) {
+            // outAuthBuf was allocated with CoTaskMemAlloc, so you
+            // free it with CoTaskMemFree...
             SecureZeroMemory(outAuthBuf, outAuthBufSize);
             CoTaskMemFree(outAuthBuf);
         }
         if (inAuthBuf != nullptr) {
+            // but inAuthBuf was allocated with malloc, so you
+            // free it with free...
             free(inAuthBuf);
         }
         if (username != nullptr) {
+            // but username and password were allocated with new,
+            // so you free them with delete[]!
+            // Cry about it!
             delete[] username;
         }
         if (password != nullptr) {
             SecureZeroMemory(password, sizeof(password));
             delete[] password;
         }
+
+        // Clean up the handles that CreateProcessWithLogonW opened
+        // on those two unused structs.
         if (pi.hProcess   != nullptr) CloseHandle(pi.hProcess);
         if (pi.hThread    != nullptr) CloseHandle(pi.hThread);
         if (si.hStdInput  != nullptr) CloseHandle(si.hStdInput);
@@ -247,7 +271,15 @@ class UserSwitcher {
             }
         }
 
-        autofillUsername = autofillUsername.size() > 0 ? autofillUsername : getCurrentDomain();
+        // Default the current user's domain if the username for the prompt is empty.
+        if (autofillUsername.size() == 0) {
+            autofillUsername = qgetenv("USERDOMAIN");
+            if (autofillUsername.size() != 0) {
+                autofillUsername += '\\';
+            }
+        }
+
+        // Prompt for credentials.
         QString credResult = promptForCredentials(autofillUsername, hwnd);
         QString usernameToSave = username == nullptr ? "" : QString::fromStdWString(username);
         if (credResult != "Success") {
@@ -264,9 +296,9 @@ class UserSwitcher {
         copyDir(qApp->applicationDirPath(), dest.path());
         QProcess process;
         process.startCommand(
-            "icacls \"" + QDir::toNativeSeparators(dest.path()) +
-            "\" /grant " + usernameToSave +
-            ":(OI)(CI)RX /T"
+            "icacls \"" + QDir::toNativeSeparators(dest.path()) + "\""
+            "/grant " + usernameToSave + ":(OI)(CI)RX "
+            "/T"
         );
         process.waitForFinished();
 
@@ -275,3 +307,6 @@ class UserSwitcher {
         return { runAs(command), usernameToSave };
     }
 };
+
+
+#endif  // SWITCHUSER_HPP
